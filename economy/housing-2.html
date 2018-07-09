@@ -1,0 +1,45 @@
+<!doctype html>
+<style>
+body {
+  font: 10px sans-serif;
+}
+
+#wrap {
+  width: 800px;
+  margin: 0 auto;
+}
+.legend {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.axis {
+  shape-rendering: crispEdges;
+}
+
+.axis line,
+.axis path {
+  fill :none;
+  stroke-width: 1px;
+  stroke: #000;
+}
+
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+circle.line {
+  fill: #fff;
+}
+</style>
+<div id="wrap">
+<h1>Case-Shiller</h1>
+<div id="chart"></div>
+</div>
+<script src="lib/underscore.js"></script>
+<script src="lib/d3.v2.js"></script>
+<script src="js/housing-2.js"></script>
+<script>
+housing2();
+</script>

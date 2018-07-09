@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>Chord Diagram</title>
+    <script type="text/javascript" src="../../lib/d3/d3.js"></script>
+    <script type="text/javascript" src="../../lib/d3/d3.layout.js"></script>
+    <link type="text/css" rel="stylesheet" href="chord.css"/>
+  </head>
+  <body>
+    <div id="chart"></div>
+    <script src="utils.js"></script>
+    <script src="chord-original.js"></script>
+    <button id="update">Update</button>
+    <script>
+    var data = [
+        [6,32,47,81,31,89,24,68,50,39],
+        [37,83,57,80,87,7,85,7,68,17],
+        [50,15,31,3,1,85,36,95,83,99],
+        [37,25,37,81,72,98,32,13,70,25],
+        [19,99,97,79,74,43,78,18,4,57],
+        [77,2,87,41,93,52,6,42,11,76],
+        [91,56,97,65,23,60,63,68,45,48],
+        [97,50,79,52,85,31,85,21,79,44],
+        [17,77,96,22,87,98,58,15,36,16],
+        [44,54,60,69,36,44,76,58,50,16]
+    ];
+
+    chord(data);
+
+    d3.select("#update").on("click", function() {
+        var data = random_matrix(10);
+        chord(data);
+    });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>Parallel Coordinates</title>
+        
+
+  <script type="text/javascript" src="../lib/jquery.js"></script>
+  <script type="text/javascript" src="../lib/underscore.js"></script>
+  <script type="text/javascript" src="../lib/backbone.js"></script>
+
+  <script src="../lib/jquery-ui-1.8.11.custom.min.js"></script>
+  <script type="text/javascript" src="filter.js"></script>
+  <script type="text/javascript" src="parallel-coordinates.js"></script>
+
+  <!-- SlickGrid -->
+  <link rel="stylesheet" href="../lib/slickgrid/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+  <script src="../lib/slickgrid/jquery.event.drag-2.0.min.js"></script>
+  <script src="../lib/slickgrid/slick.core.js"></script>
+  <script src="../lib/slickgrid/slick.grid.js"></script>
+  <script src="../lib/slickgrid/slick.dataview.js"></script>
+  <script src="../lib/slickgrid/slick.pager.js"></script>
+  <script src="grid.js"></script>
+  <script src="data/food-table.js"></script>
+  <link rel="stylesheet" href="style.css" type="text/css" charset="utf-8" />
+  <style type="text/css">
+  #main {
+    width: 1360px;
+  }
+  </style>
+</head>
+
+<body>
+
+<div id="main">
+  <h2>Nutrition Data with Parallel Coordinates</h2>
+  <p>
+	<a href="#" onclick="$('#instructions').fadeIn();$(this).hide();">Instructions</a>
+    <small><a href="#" id="remove_selected" style="float:right;color:#666;">Remove Selected</a></small>
+	<small><a href="#" id="keep_selected" style="float:right;color:#666;">Keep Selected</a></small>
+  </p>
+  <div id="instructions" style="display:none;">
+    <p><strong>Hover</strong> your mouse over the chart. There is a translucent gray background while hovering over an axis. The chart will <em>colorize</em> data based on values in that axis.</p>
+    <p>To <em>create</em> a filter on some axes, <strong>click and drag</strong> starting from the area between axes and select the range to filter. To filter a single axis, click and drag within that axis.</p>
+    <p>To <em>move</em> a filter, <strong>drag</strong> it up and down.</p>
+    <p>To <em>destroy</em> a filter, <strong>double click</strong> the translucent gray axis background.</p>
+    <p>&nbsp;</p>
+  </div>
+  <div id="parallel-coordinates">
+  </div>
+  <div style="width:1360px;">
+      <div id="pager" style="width:100%;height:20px;"></div>
+      <div id="myGrid" style="width:100%;height:500px;"></div>
+  </div>
+  <script type="text/javascript">
+
+  var dimensions = new Filter();
+
+  dimensions.set({data: foods});
+  
+  var foodgroups =
+    ["Dairy and Egg Products", /*"Spices and Herbs", "Baby Foods",*/ "Fats and Oils",
+     "Poultry Products", "Soups, Sauces, and Gravies", "Vegetables and Vegetable Products",
+     "Sausages and Luncheon Meats", "Breakfast Cereals", "Fruits and Fruit Juices",
+     "Nut and Seed Products", "Beverages", "Finfish and Shellfish Products",
+     "Legumes and Legume Products", "Baked Products", "Sweets", "Cereal Grains and Pasta",
+     "Fast Foods", "Meals, Entrees, and Sidedishes", "Snacks", /*"Ethnic Foods",*/ "Restaurant Foods"];
+     
+  var columns = _(foods[0]).keys();
+
+  var parallel = new Parallel_coordinates ({
+    title: 'Multidimensional Query - Parallel Coordinates',
+    model: dimensions,
+    el: document.getElementById('parallel-coordinates'),
+    columns: _(columns).without('name','group'),
+    width: 1360,
+    height: 400,
+    gutter: { x: 100, y: 50 },
+  });
+
+  var slicky = new grid({
+    model: dimensions,
+    width: 1360,
+    columns: columns
+  });
+
+  parallel.update();
+  slicky.update();
+  
+  /*
+  slicky.bind('columnsReordered', function(cols) {
+    var cols = _(cols).reject(function(col) { return col == 'name'});
+    parallel.columns = cols;
+    parallel.update()
+  });
+  */
+  
+  $('#remove_selected').click(function() {
+    dimensions.outliers();
+    parallel(dimensions);
+  });
+  
+  $('#keep_selected').click(function() {
+    dimensions.inliers();
+    parallel(dimensions);
+  });
+
+  </script>
+  <div id="footer">
+    <p>
+     Copyright 2011, Boundary
+    </p>
+    <p>
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+    </p>
+    <p>
+         http://www.apache.org/licenses/LICENSE-2.0
+    </p>
+    <p>
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+    </p>
+  </div>
+</div>
+</body>
+</html>

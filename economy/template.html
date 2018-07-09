@@ -1,0 +1,121 @@
+<!doctype html>
+<style>
+body {
+  font: 10px sans-serif;
+}
+
+#wrap {
+  width: 800px;
+  margin: 0 auto;
+}
+
+.legend {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.date-step {
+  border-radius: 4px;
+  padding: 4px 6px;
+  background: #eee;
+  color: #000;
+  text-decoration: none;
+}
+
+.date-step:hover {
+  background: #444;
+  color: #fff;
+}
+
+.axis {
+  shape-rendering: crispEdges;
+}
+
+.axis line,
+.axis path {
+  fill :none;
+  stroke-width: 1px;
+  stroke: #000;
+}
+
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+.line.bold {
+  stroke-width: 3px;
+}
+
+circle.line {
+  fill: #fff;
+}
+
+</style>
+<div id="wrap">
+  <h1>Common Template</h1>
+  <p>
+    This is a template for all six economic factors
+  </p>
+  <div id="chart"></div>
+</div>
+<script src="lib/underscore.js"></script>
+<script src="lib/underscore.string.js"></script>
+<script src="lib/d3.v2.js"></script>
+<script src="lib/queue.js"></script>
+<script src="lib/utils.js"></script>
+<script src="js/common.js"></script>
+<script>
+var margin = {top: 20, right: 160, bottom: 20, left: 30},
+    width = 800 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom,
+    xscale = d3.time.scale().range([0,width]),
+    yscale = d3.scale.linear().range([height,0]),
+    timeFormat = d3.time.format("%B %Y");
+
+var minDate = (new Date(2009, 8)).getTime();
+var maxDate = (new Date(2012, 8)).getTime();
+
+var color_scale = d3.scale.category10();
+var color = function(d,i) {
+  if (i == 0) { return "#222"; }
+  return color_scale(i);
+};
+
+xscale.domain([minDate, maxDate]);
+yscale.domain([0, 300]);
+
+var xAxis = d3.svg.axis().scale(xscale);
+var yAxis = d3.svg.axis().scale(yscale).orient("left");
+
+var svg = d3.select("#chart")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// Add the clip path.
+svg.append("svg:clipPath")
+    .attr("id", "clip")
+  .append("svg:rect")
+    .attr("width", width)
+    .attr("height", height);
+
+svg.append("svg:g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+svg.append("svg:g")
+    .attr("class", "y axis")
+    .attr("transform", "translate(0,0)")
+    .call(yAxis);
+
+function path() {
+  return d3.svg.line()
+    .x(function(d) { return xscale(d.date); })
+    .y(function(d) { return yscale(d.value); })
+};
+
+</script>

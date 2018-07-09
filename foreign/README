@@ -1,0 +1,5 @@
+This is an infograhic of US Foreign Aid by Department, Country and Year from 1976-2009.  Data sourced from http://explore.data.gov/d/tyea-6dgv
+
+Built with coffeescript using D3.  Raphael thrown in just for colors, so it should probably be taken out for optimization.
+
+To run locally, start a simple python server.

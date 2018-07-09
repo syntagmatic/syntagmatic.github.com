@@ -1,0 +1,141 @@
+<!DOCTYPE HTML>
+<head>
+<script type="text/javascript" src="js/d3.v2.min.js"></script>
+<script type="text/javascript" src="js/underscore.js"></script>
+<script type="text/javascript" src="js/underscore.math.js"></script>
+<style>
+body {
+  font-size:10px;
+  color: #1a1a1a;
+  background: #f9f9f9;
+  font-family: Helvetica, Arial, sans-serif;
+  margin: 0 auto;
+  width: 960px;
+  text-align: center;
+}
+.aid {
+  fill: #1a1a1a;
+}
+text {
+  fill: #1a1a1a;
+}
+#canvas {
+  margin: 30px 0;
+}
+</style>
+</head>
+<body>
+<h2>US Foreign Economic Assistance (1974-2009)</h2>
+<p><big>
+  <span style="height:5px;width:5px;display:inline-block;background:#333;"></span> $1 Billion USD</big>
+</p>
+<div id="canvas"></div>
+<p>
+U.S. Overseas Loans and Grants from <a href="https://explore.data.gov/Foreign-Commerce-and-Aid/U-S-Overseas-Loans-and-Grants-Greenbook-/5gah-bvex">Data.gov</a><br/>
+Top 100 countries, sorted by total quantity of military assistance.<br/>
+</p>
+<p>&copy; 2012 Kai Chang &amp; Mary Becica</p>
+<script type="text/javascript">
+var w = 1000,
+    h = 2000,
+    boxw = 175,
+    boxh = 40,
+    boxmr = 65,
+    boxmb = 40,
+    per_row = 4,
+    color = "#333";
+
+var svg = d3.select("#canvas")
+  .append("svg")
+  .attr("width", w)
+  .attr("height", h);
+
+var x = d3.scale.linear()
+  .domain([1974,2009])
+  .range([0,boxw]);
+
+var y = d3.scale.linear()
+  .range([boxh,0]);
+
+var format = d3.format(",2s");
+
+var area = d3.svg.area()
+  .interpolate("step-before")
+  .x(function(d,i) { return x(i+1974); })
+  .y(function(d) { return y(d); })
+  .y0(boxh);
+
+d3.json("data/countryTotals.json", function(data) {
+  countryList = _(data[0]).chain()
+    .map(function(v,k) {
+      return {
+        country: k,
+        values: _(_.range(1974,2010)).map(function(i) { return v[i] })
+      }
+    })
+    .filter(function(d) {
+      // filter out not specified
+      return d.country.indexOf("specified") == -1;  
+    })
+    .sortBy(function(d) {
+      return _.sum(d.values);
+    })
+    .value()
+    .reverse()
+    .slice(0,100);
+
+  //var max = _(data[0]).chain().map(_.toArray).flatten().max().value();
+  var max = 8000000000;
+  y.domain([0,max]);
+
+  var countries = svg.selectAll("g.country")
+    .data(countryList)
+    .enter().append("g")
+    .attr("class", "country")
+    .attr("transform", function(d,i) {
+      return "translate(" + ((boxw+boxmr)*(i%per_row)) + "," + ((boxh+boxmb)*Math.floor(i/per_row)) + ")"
+    })
+    .on("mousemove", function(d) {
+      var pos = d3.mouse(this);
+      var year = Math.floor(x.invert(pos[0]))
+      var amount = d.values[year-1974];
+      d3.selectAll(".hover").remove();
+      d3.select(this).append("text")
+        .attr("class", "hover")
+        .attr("x", x(year))
+        .attr("y", boxh+15)
+        .attr("text-anchor", "middle")
+        .text(year);
+      d3.select(this).append("text")
+        .attr("class", "hover")
+        .attr("x", x(year))
+        .attr("y", boxh+26)
+        .attr("text-anchor", "middle")
+        .text("$" + format(amount));
+      d3.select(this).append("rect")
+        .attr("class", "hover")
+        .attr("x", x(year)-5)
+        .attr("y", y(amount))
+        .attr("width", 5)
+        .attr("height", boxh-y(amount))
+        .attr("fill", "#d00");
+    });
+
+  countries.append("rect")
+    .attr({
+      width: boxw,
+      height: boxh,
+      fill: "#f9f9f9"
+    });
+
+  countries.append("text")
+    .text(function(d) { return d.country; })
+    .attr("x", boxw/2)
+    .attr("y", 22)
+    .attr("text-anchor", "middle");
+
+  countries.append("path")
+    .attr("d", function(d) { return area(d.values) })
+    .attr("class", "aid");
+});
+</script>

@@ -1,0 +1,189 @@
+<!DOCTYPE html><html><head><title>Visually Analyzing Multidimensional Data</title><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" /><style type='text/css'>
+body {
+  font-family: "Trebuchet MS";
+  letter-spacing:-5px;
+  color:#000;
+  background:#fff;
+  background-size: 740px;
+  background-repeat: no-repeat;
+  margin:0;
+  padding:0;
+  font-weight:bold;
+  text-shadow: -2px 2px 1px rgba(255,255,255,1),2px -2px 1px rgba(255,255,255,1),2px 2px 1px rgba(255,255,255,1), -2px -2px 1px rgba(255,255,255,1);
+  text-align: center;
+}
+
+h1, h2, h3, p {
+  margin:0;
+}
+
+em, a {
+  font-style:normal;
+  color:#8dbd0c;
+}
+
+a {
+  text-decoration:none;
+}
+
+div {
+  position:absolute;
+  top:0;
+  left:0;
+}
+.range {
+  color: #079;
+}
+.bad {
+  color: #b20;
+}
+.good {
+  color: #2b0;
+}
+.light {
+  color: #aaa;
+  font-weight: normal;
+}
+.left {
+  text-align: left;
+}
+td, th {
+  text-align: left;
+  padding-right: 40px;
+  font-size: 40px;
+  font-family: Helvetica;
+  letter-spacing: -2px;
+}
+th {
+  font-weight: bold;
+}
+td {
+  font-weight: normal;
+}
+</style><script type='text/javascript'>
+window.onload = function() {
+    var s = document.getElementsByTagName('div'), cur = 0;
+    if (!s) return;
+    function go(n) {
+        cur = n;
+        var i = 1e3, e = s[n];
+        for (var k = 0; k < s.length; k++) s[k].style.display = 'none';
+        e.style.display = 'inline';
+        e.style.fontSize = i + 'px';
+        if (e.firstChild.nodeName === 'IMG') {
+            document.body.style.backgroundImage = 'url(' + e.firstChild.src + ')';
+            e.firstChild.style.display = 'none';
+        } else {
+            document.body.style.backgroundImage = '';
+            document.body.style.backgroundColor = e.style.backgroundColor;
+        }
+        while (
+            e.offsetWidth > window.innerWidth ||
+            e.offsetHeight > window.innerHeight) {
+            e.style.fontSize = (i -= 10) + 'px';
+            if (i < 0) break;
+        }
+        e.style.marginTop = ((window.innerHeight - e.offsetHeight) / 2) + 'px';
+        if (window.location.hash !== n) window.location.hash = n;
+        document.title = e.textContent || e.innerText;
+    }
+    document.onclick = function() {
+        if (event.target.tagName == "A") return; // prevent link clicks from progressing slide in chrome
+        go(++cur % (s.length));
+    };
+    document.onkeydown = function(e) {
+        (e.which === 39) && go(Math.min(s.length - 1, ++cur));
+        (e.which === 37) && go(Math.max(0, --cur));
+    };
+    function parse_hash() {
+        return Math.max(Math.min(
+            s.length - 1,
+            parseInt(window.location.hash.substring(1), 10)), 0);
+    }
+    if (window.location.hash) cur = parse_hash() || cur;
+    window.onhashchange = function() {
+        var c = parse_hash();
+        if (c !== cur) go(c);
+    };
+
+    go(cur);
+};
+</script></head><body>
+<div>what is multidimensional data?</div>
+<div><table>
+  <tr>
+    <th>food</th>
+    <th>protein</th>
+    <th>calcium</th>
+    <th>sodium</th>
+    <th>potassium</th>
+  </tr>
+  <tr>
+    <td>fish broth</td>
+    <td>2</td>
+    <td>0.03</td>
+    <td>0.318</td>
+    <td>0.086</td>
+  </tr>
+  <tr>
+    <td>blood sausage</td>
+    <td>14.6</td>
+    <td>0.006</td>
+    <td>0.68</td>
+    <td>0.038</td>
+  </tr>
+  <tr>
+    <td>puffed millet</td>
+    <td>13</td>
+    <td>0.008</td>
+    <td>0.005</td>
+    <td>0.004</td>
+  </tr>
+  <tr>
+    <td>medjool dates</td>
+    <td>1.81</td>
+    <td>0.064</td>
+    <td>0.001</td>
+    <td>0.696</td>
+  </tr>
+</table></div>
+<div>what is data visualization?</div>
+<div style="text-align: left;">imposing space/time on data</div>
+<div>for example</div>
+<div><img src="img/cartesian.svg"></img></div>
+<div>cartesian coordinate system</div>
+<div>hans rosling's bubble chart</div>
+<div class="left">fertility rate<br/>life expectancy<br/>population<br/>region<br/>year</div>
+<div class="left">fertility rate <span class="light">&rarr;</span> <span class="range">y axis</span><br/>life expectancy <span class="light">&rarr;</span> <span class="range">x axis</span><br/>population <span class="light">&rarr;</span> <span class="range">radius</span><br/>region <span class="light">&rarr;</span> <span class="range">color</span><br/>year <span class="light">&rarr;</span> <span class="range">animation</span></div>
+<div>problems for data exploration</div>
+<div>hit a limit at 5-6 dimensions</div>
+<div>more dimensions more problems</div>
+<div>how can we work with dozens of dimensions?</div>
+<div>and another thing!</div>
+<div>dimension encodings are qualitatively different<br/> <span class="range">position</span>, <span class="range">color</span>, <span class="range">radius</span></div>
+<div>how can we give equal weight to every dimension?</div>
+<div>data table</div>
+<div>data table<br/> <span class="bad">can't fit everything onto one screen</span></div>
+<div>data table<br/> <span class="bad">weak visual clues</span></div>
+<div>data table<br/> <span class="good">ad hoc computation and transformation</span></div>
+<div>what is exploring?</div>
+<div>looking for patterns</div>
+<div>seeking structure</div>
+<div>applying theory</div>
+<div>having fun</div>
+<div><span class="range">| | | | | | |</span><br/>parallel coordinates<br/><span class="range">| | | | | | |</span></div>
+<div>An <span class="good">interactive</span>, <span class="good">multidimensional</span> geometry in<br/><span class="good">2-d</span> space</div>
+<div style="letter-spacing: -2px; text-align: left;">
+  <a href="http://bl.ocks.org/syntagmatic/raw/3201160/">Nutrient Scatterplot</a><br/>
+  <a href="http://bl.ocks.org/syntagmatic/raw/3150059/">Nutrient Parallel Coordinates</a><br/>
+  <a href="http://bl.ocks.org/syntagmatic/raw/3096638/">Broken Parallel Coordinates</a><br/>
+  <a href="http://bl.ocks.org/syntagmatic/raw/3290392/">Fisheye Parallel Coordinates</a><br/>
+  <a href="http://exposedata.com/costofliving/">Cost of Living</a><br/>
+  <a href="https://appstorerankings.net/visualizing-the-ios-app-store">App Store Rankings</a><br/>
+  <a href="http://bl.ocks.org/syntagmatic/raw/2514902/">Hipparcos</a><br/>
+  Interactive Learning Module - <a href="http://www.amazon.com/Parallel-Coordinates-Multidimensional-Geometry-Applications/dp/0387215077/ref=sr_1_1?ie=UTF8&qid=1368797551&sr=8-1&keywords=parallel+coordinates">comes with this book</a><br/>
+  <a href="http://syntagmatic.github.io/parallel-coordinates/examples/veterans.html">Wyoming Veteran Gravesites</a><br/>
+  <a href="http://syntagmatic.github.io/parallel-coordinates/">Parallel Coordinates Library</a><br/>
+  <a href="http://fleetinbeing.net/hypersolid/examples/">Hypersolids</a><br/>
+  <a href="http://bl.ocks.org/syntagmatic/2556042">Force-Directed Parallel Coordinates</a><br/>
+</div>

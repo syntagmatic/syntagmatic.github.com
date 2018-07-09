@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>Parallel Coordinates</title>
+        
+  <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?2.5.0"></script>
+  <script type="text/javascript" src="http://mbostock.github.com/d3/d3.csv.js?2.5.0"></script>
+
+  <script type="text/javascript" src="../lib/jquery.js"></script>
+  <script type="text/javascript" src="../lib/underscore.js"></script>
+  <script type="text/javascript" src="../lib/backbone.js"></script>
+
+  <script src="../lib/jquery-ui-1.8.11.custom.min.js"></script>
+  <script type="text/javascript" src="filter.js"></script>
+  
+  <!-- SlickGrid -->
+  <link rel="stylesheet" href="../lib/slickgrid/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+  <script src="../lib/slickgrid/jquery.event.drag-2.0.min.js"></script>
+  <script src="../lib/slickgrid/slick.core.js"></script>
+  <script src="../lib/slickgrid/slick.grid.js"></script>
+  <script src="../lib/slickgrid/slick.dataview.js"></script>
+  <script src="../lib/slickgrid/slick.pager.js"></script>
+  <script src="grid.js"></script>
+  <script src="options.js"></script>
+  <link rel="stylesheet" href="style.css" type="text/css" charset="utf-8" />
+<style type="text/css">
+#main {
+  width: 100%;
+}
+
+#parallel {
+  width: 100%;
+  height: 400px;
+}
+.foreground path,
+.highlight path {
+  stroke: #c42;
+}
+    </style>
+</head>
+
+<body class="inverted">
+<div id="nav">
+  <h1>Two Micron All Sky Survey</h1>
+  <div class="widget right toggle">
+	</div>
+  <div><a href="#" id="no_ticks" class="right toggle">Hide Ticks</a></div>
+  <p class="intro left clear">
+    An interactive visualization of a subset of the <a href="http://www.ipac.caltech.edu/2mass/releases/sampler/explsup.html">2MASS Sampler Data</a>.
+  </p>
+</div>
+<div id="main">
+  <div id="parallel">
+  </div>
+  <div style="width:100%;">
+      <div id="pager" style="width:100%;height:20px;"></div>
+      <div id="myGrid" style="width:100%;height:280px;"></div>
+  </div>
+  <pre>
+\                                                                               
+\fixlen = T
+\primary    = 0
+\RowsRetrieved =                     
+\QueryTime     =                               
+\ORIGIN  = 'IPAC Infrared Science Archive (IRSA), Caltech/JPL'
+\DATETIME= '2011-12-09 23:54:47'
+\DataTag = 'ADS/IRSA.Gator#2011/1209/235447_23378'
+\DATABASE= '2MASS Sampler Point Source Catalog (PSC) (pts_samp_cat)'
+\EQUINOX = 'J2000'
+\StatusFile = '/workspace/TMP_WibsT4_22987/Gator/irsa/23378/log.23378.html'
+\SQL     = 'WHERE (no constraints) 
+\SQL     = 'SELECT (22 column names follow in next row.)'
+\
+\ ra (deg) 
+\ ___ right ascension (J2000 decimal deg)
+\ dec (deg) 
+\ ___ declination (J2000 decimal deg)
+\ err_maj (arcsec) 
+\ ___ major axis of position error ellipse
+\ err_min (arcsec) 
+\ ___ minor axis of position error ellipse
+\ err_ang (deg) 
+\ ___ position angle of error ellipse major axis (E of N)
+\ j_m (mag) 
+\ ___ J selected "default" magnitude or 95% confidence upper limit
+\ j_msig (mag) 
+\ ___ J "default" mag uncertainty
+\ h_m (mag) 
+\ ___ H selected "default" magnitude or 95% confidence upper limit
+\ h_msig (mag) 
+\ ___ H "default" mag uncertainty
+\ k_m (mag) 
+\ ___ K selected "default" magnitude or 95% confidence upper limit
+\ k_msig (mag) 
+\ ___ K "default" mag uncertainty
+\ rd_flg
+\ ___ source of JHK "default" mags (AKA "read flag")
+\ bl_flg
+\ ___ indicates # JHK components fit to source (each digit=0|1|2)
+\ cc_flg
+\ ___ indicates artifact contamination and/or confusion
+\ extd_flg
+\ ___ indicates src associated with or contaminated by an ext. src
+\ id_opt
+\ ___ associated optical source catalog ID (closest match)
+\ b_m_opt (mag) 
+\ ___ catalog blue mag of associated optical source
+\ r_m_opt (mag) 
+\ ___ catalog red mag of associated optical source
+\ dist_opt (arcsec) 
+\ ___ distance in arcsec relative to associated optical source
+\ phi_opt (deg) 
+\ ___ position angle relative to optical source (E of N)
+\ nopt_mchs
+\ ___ number of optical sources within 5 arcsec of 2MASS src
+\ ext_key
+\ ___ key (cntr value) to matching extended source data record
+\
+|        ra|       dec|err_maj|err_min|err_ang|   j_m|j_msig|   h_m|h_msig|   k_m|k_msig|rd_flg|bl_flg|cc_flg|extd_flg|       id_opt|b_m_opt|r_m_opt|dist_opt|phi_opt|nopt_mchs|ext_key|
+|    double|    double| double| double|    int|double|double|double|double|double|double|  char|  char|  char|     int|         char| double| double|  double|    int|      int|    int|
+|       deg|       deg| arcsec| arcsec|    deg|   mag|   mag|   mag|   mag|   mag|   mag|      |      |      |        |             |    mag|    mag|  arcsec|    deg|         |       |
+
+  </pre>
+  <script type="text/javascript" src="parallel-coordinates-d3.js"></script>
+  <script type="text/javascript">
+  
+  d3.csv("data/2mass.csv", function(data) {
+    var dimensions = d3.keys(data[0]);
+    
+    var filter_link = new Filter();
+
+    filter_link.set({data: data});
+
+    parallel(filter_link);
+
+    var slicky = new grid({
+      model: filter_link,
+      columns: dimensions
+    });
+
+    slicky.update();
+  });
+  
+  </script>
+  <!--
+    <p>
+     Copyright 2011, Kai Chang
+    </p>
+    <p>
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+    </p>
+    <p>
+         http://www.apache.org/licenses/LICENSE-2.0
+    </p>
+    <p>
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+	-->
+</div>
+</body>
+</html>

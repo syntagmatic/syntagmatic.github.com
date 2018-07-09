@@ -1,0 +1,28 @@
+<canvas id="tutorial" width="150" height="150"></canvas>
+
+<script>
+  var canvas = document.getElementById('tutorial');
+  var ctx = canvas.getContext('2d');
+  canvas.width = document.body.clientWidth;
+  canvas.height = document.body.clientHeight;
+
+    function render() {
+      // this could be more interesting
+      ctx.fillRect(canvas.width*Math.random(), canvas.height*Math.random(), 2, 2);
+    };
+
+    window.requestAnimFrame = window.requestAnimationFrame  || 
+                  window.webkitRequestAnimationFrame        || 
+                  window.mozRequestAnimationFrame           || 
+                  window.oRequestAnimationFrame             || 
+                  window.msRequestAnimationFrame            || 
+                  function(callback, element) {
+                    window.setTimeout(callback, 16);
+                  };
+
+    (function animloop(){
+      requestAnimFrame(animloop);
+      render();
+    })();
+
+</script>

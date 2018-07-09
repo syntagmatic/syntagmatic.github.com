@@ -1,0 +1,35 @@
+<p>
+    <a href="original.html">Original</a><br/>
+    Similar to the d3 example. The changes are:
+    <ul>
+        <li><strong>chord</strong> is its own function, taking data as its argument</li>
+        <li>clicking "Update" will draw a new chord diagram, with random data</li>
+    </ul>
+</p>
+<p>
+    <a href="chart.html">Chart</a><br/>
+    A cleaner interface for updating and rendering the chart
+    <ul>
+        <li><strong>chord</strong> returns an object</li>
+        <li><strong>chord</strong> takes a container as its argument, so it can be for multiple charts</li>
+        <li><strong>chord.update</strong>, <strong>chord.render</strong> and <strong>chord.clear</strong> work for each chart</li>
+    </ul>
+</p>
+<p>
+    <a href="arcs.html">Arc Tweens</a><br/>
+    Arcs are tweened for updates.
+</p>
+<p>
+    <a href="chords.html">Chord and Tick Tweens</a><br/>
+    Chord and tick tweens for updates.
+</p>
+<p>
+    <a href="options.html">Fill Options</a><br/>
+    <strong>chord</strong> takes an object as its argument, with a mandatory <strong>container</strong> attribute and optional <strong>fill</strong> attribute
+</p>
+
+<h3>Remaining Issues</h3>
+<ul>
+    <li>Chords "flip around" during update</li>
+    <li>Zero values break transition</li>
+</ul>

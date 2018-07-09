@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>Parallel Coordinates</title>
+        
+  <script type="text/javascript" src="../lib/d3/d3.js"></script>
+  <script type="text/javascript" src="../lib/d3/d3.csv.js"></script>
+
+  <script type="text/javascript" src="../lib/jquery.js"></script>
+  <script type="text/javascript" src="../lib/underscore.js"></script>
+  <script type="text/javascript" src="../lib/backbone.js"></script>
+
+  <script src="../lib/jquery-ui-1.8.11.custom.min.js"></script>
+  <script type="text/javascript" src="filter.js"></script>
+  
+  <!-- SlickGrid -->
+  <link rel="stylesheet" href="../lib/slickgrid/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+  <script src="../lib/slickgrid/jquery.event.drag-2.0.min.js"></script>
+  <script src="../lib/slickgrid/slick.core.js"></script>
+  <script src="../lib/slickgrid/slick.grid.js"></script>
+  <script src="../lib/slickgrid/slick.dataview.js"></script>
+  <script src="../lib/slickgrid/slick.pager.js"></script>
+  <script src="js/sylvester.js"></script>
+  <script src="js/glUtils.js"></script>
+  <script src="js/ParallelCoordinatesBendiksen.js"></script>
+  <script src="grid.js"></script>
+  <script src="options.js"></script>
+  <link rel="stylesheet" href="style.css" type="text/css" charset="utf-8" />
+<style type="text/css">
+#main {
+  width: 100%;
+}
+
+#parallel {
+  width: 100%;
+  height: 400px;
+}
+#overlay {
+  width: 100%;
+  height: 400px;
+  position: absolute;
+}
+.foreground path,
+.highlight path {
+  stroke: #c42;
+}
+    </style>
+</head>
+
+<body class="inverted">
+<div id="nav">
+  <h1>Two Micron All Sky Survery</h1>
+  <div class="widget right toggle">
+	</div>
+  <div><a href="#" id="no_ticks" class="right toggle">Hide Ticks</a></div>
+  <p class="intro left clear">
+  </p>
+</div>
+<div id="main">
+  <div style="position: relative;">
+    <canvas id="overlay">
+    </canvas>
+    <canvas id="parallel">
+    </canvas>
+    <div id="brushes" style="position: absolute; top:90%; left:0" >
+      <input type="button" value="Remove brush" onclick="removeBrush()" />
+      <input type="button" value="Add brush" onclick="addBrush()" />
+    </div>
+  </div>
+  <div style="width:100%;">
+      <div id="pager" style="width:100%;height:20px;"></div>
+      <div id="myGrid" style="width:100%;height:280px;"></div>
+  </div>
+  <script type="text/javascript">
+
+
+
+  d3.csv("data/hmda-30000.csv", function(data) {
+    var dimensions = d3.keys(data[0]);
+    var filter_link = new Filter();
+    filter_link.set({data: data});
+
+    pc = new ParCoord("parallel", "overlay");
+    pc.setData(data);
+
+    var slicky = new grid({
+      model: filter_link,
+      columns: dimensions
+    });
+
+    slicky.update();
+  });
+  
+  </script>
+  <!--
+     Copyright 2011, Kai Chang
+	-->
+</div>
+</body>
+</html>

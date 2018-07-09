@@ -1,0 +1,47 @@
+<!doctype html>
+<style>
+body {
+  font: 10px sans-serif;
+}
+
+#wrap {
+  width: 800px;
+  margin: 0 auto;
+}
+.legend {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.axis {
+  shape-rendering: crispEdges;
+  fill: #666;
+}
+
+.axis line,
+.axis path {
+  fill :none;
+  stroke-width: 1px;
+  stroke: #aaa;
+}
+
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+circle.line {
+  fill: #fff;
+}
+</style>
+<div id="wrap">
+<h1>Ghosts of housing prices past</h1>
+<p>This is a mesmerizing way to experience a bunch of time series</p>
+<div id="chart"></div>
+</div>
+<script src="lib/underscore.js"></script>
+<script src="lib/d3.v2.js"></script>
+<script src="js/housing-3.js"></script>
+<script>
+housing3();
+</script>

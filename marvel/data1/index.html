@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+
+    <head>
+        <title>Marvel Universe Social Graph</title>
+        <!-- Copy the code below on your HTML file or header -->
+        <script src="js/seadragon-min.js" type="text/javascript"></script>
+        <!-- <script src="http://seadragon.com/ajax/0.8/seadragon-min.js" type="text/javascript"></script> -->
+        <script type="text/javascript">
+            Seadragon.Config.imagePath = "img/";
+            //Seadragon.Config.debugMode = true;
+                
+            // Start the viewer
+            function start() {
+                var viewer = new Seadragon.Viewer("seadragon");
+                viewer.openDzi("map/map.xml");
+            }
+        </script>
+        <style type="text/css">
+            body {
+                margin: 20px 0 60px;
+                background-color: #111;
+                color: #ddd;
+                text-align: center;
+                font-family: Helvetica, Arial, sans-serif;
+            }
+            h1 {
+                font-family: Impact, Helvetica, Arial, sans-serif;
+                font-weight: normal;
+                font-size: 48px;
+                color: #FFC730;
+            }
+            #seadragon {
+                margin: 0 auto;
+                width: 800px;
+                height: 600px;
+                background-color: Black;
+            }
+        </style>
+        <!-- End -->
+    </head>
+
+    <body onload="start();">
+      <h1>Marvel Universe Social Graph</h1>
+      <h2>Full dataset 1</h2>
+      <p><small>May take a moment to load. Try zooming in to the box below if nothing appears.</small></p>
+      <div id="seadragon"></div>
+      <p>Created with the Marvel Universe Social Graph dataset from Infochimps in Gephi for the Data Insight SF competition.
+    </body>
+
+</html>

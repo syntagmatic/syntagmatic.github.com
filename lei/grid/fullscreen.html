@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>LEI Fullscreen Datagrid</title>
+  <link rel="stylesheet" href="../lib/slick.grid.css" type="text/css"/>
+  <link rel="stylesheet" href="examples.css" type="text/css"/>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: White;
+      overflow: auto;
+    }
+
+    body {
+      font: 11px Helvetica, Arial, sans-serif;
+    }
+
+    #container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    #description {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      width: 25em;
+      background: beige;
+      border: solid 1px gray;
+      z-index: 1000;
+    }
+
+    #description h2 {
+      padding-left: 0.5em;
+    }
+  </style>
+</head>
+<body>
+<div id="container"></div>
+<div id="description">
+  <h2>Demonstrates:</h2>
+  <ul>
+    <li>Grid filling browser window completely (using absolute positioning)</li>
+    <li>Grid resizing when browser window changes size</li>
+    <li>Overall performance of the grid when displaying large tabular data (38 columns x 10,000 rows)</li>
+  </ul>
+</div>
+
+<script src="../lib/d3.v3.min.js"></script>
+<script src="../lib/underscore.js"></script>
+<script src="../lib/jquery-2.0.3.min.js"></script>
+<script src="../lib/jquery.event.drag-2.2.js"></script>
+
+<script src="../lib/slick.core.js"></script>
+<script src="../lib/slick.grid.js"></script>
+<script>
+var grid,
+    data = [],
+    columns = [],
+    options = {
+      enableCellNavigation: false,
+      enableColumnReorder: false
+    };
+
+d3.csv("pleiPartial_20130819.csv", function(data) {
+  data = data;
+  var keys = d3.keys(data[0]);
+  _(keys).each(function(key) {
+    columns.push({
+      id: key,
+      name: key,
+      field: key,
+      width: 120
+    });
+  });
+
+  grid = new Slick.Grid("#container", data, columns, options);
+});
+</script>
+</body>
+</html>

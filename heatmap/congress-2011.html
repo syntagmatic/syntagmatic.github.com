@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>101st Congress Votes</title>
+        
+
+  <script type="text/javascript" src="../lib/jquery.js"></script>
+  <script type="text/javascript" src="../lib/underscore.js"></script>
+  <script type="text/javascript" src="../lib/backbone.js"></script>
+
+  <script type="text/javascript" src="js/heatmap.js"></script>
+  <style type="text/css">
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial;
+      background: #333;
+      color: #f9f9f9;
+      font-size: 13px;
+    }
+    #heatmap {
+      float: left;
+    }
+    #heatmap-wrap {
+      margin-top: 90px;
+      padding: 8px;
+      float: left;
+      display: none;
+    }
+    #stats {
+      position: absolute;
+      display: none;
+      border-radius: 5px;
+      width: 180px;
+      color: #1a1a1a;
+      background: white;
+      background: rgba( 255, 255, 255, 0.9);
+      padding: 8px;
+      z-index: 8;
+    }
+    #stats ul {
+      margin: 0;
+      padding: 0;
+    }
+    #topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 90px;
+      width: 100%;
+      color: #f9f9f9;
+      background: white;
+      background: rgba( 15, 15, 45, 0.80);
+      border-bottom: 1px solid #111;
+      z-index: 4;
+    }
+    a {
+      color: #fd2;
+    }
+    ul {
+      list-style: none;
+    }
+    h1 {
+      font-size: 15px;
+      margin: 6px 0 0px 12px;
+      padding: 0;
+    }
+    p {
+      margin: 8px 12px;
+    }
+    #loading {
+      margin-top: 180px;
+      font-size: 48px;
+      text-align:center;
+    }
+    #options {
+      float: right;
+      padding: 6px;
+    }
+  </style>
+  
+</head>
+
+<body>
+<div id="topbar">
+  <div id="options">
+    <a href="#" id="hires">hires</a>
+  </div>
+  <h1>Congress Votes 2011</h1>
+  <p>
+    This is a visualization of the <a href="http://clerk.house.gov/evs/2011/index.asp">roll call votes of the 101st Congress</a>.<br/>
+    Each row is a legislator. Each column is a roll call vote. Click to sort by column. A description for each roll will be in the next version.
+  </p>
+  <p>
+    Key:
+    <strong>
+      <span style="color:#0b0">Yea</span> |
+      <span style="color:#e30">Nay</span> |
+      <span style="color:yellow">Present</span> |
+      <span style="color:#2be">Not Voting</span> |
+      <span style="color:#999">Not in Congress at the time</a>
+    </strong>
+  </p>
+</div>
+<div id="stats">
+  <ul>
+    <li>
+      <strong>Legislator</strong>:
+      <span id="legislator">n/a</span>
+    </li>
+    <li>
+      <strong>Roll</strong>:
+      <span id="j">n/a</span>
+    </li>
+    <li>
+      <strong>Vote</strong>:
+      <span id="val">n/a</span>
+    </li>
+  </ul>
+</div>
+<h2 id="loading">Loading 2011 US House Votes...</h2>
+<div id="heatmap-wrap">
+  <canvas id="heatmap" height=300 width=900></canvas>
+</div>
+<script>
+var data = [],
+    legislators = [],
+    votes = [];
+
+var vote_key = {
+  0: 'Nay',
+  1: 'Yea',
+  3: 'Not Voting',
+  4: 'Present',
+  Boehner: "Boehner",
+  Pelosi: "Pelosi"
+};
+
+var colors = {
+  null: '#777',
+  undefined: '#777',
+  0: '#e30',
+  1: '#0b0',
+  3: '#2be',
+  4: 'yellow',
+  Boehner: '#0b0',
+  Pelosi: '#e30'
+};
+
+  $.getJSON('data/congress-2011.json', function(raw_data) {
+    _(raw_data).each(function(v,k) {
+      legislators.push(k);
+      votes.push(v);
+    });
+
+    // reorganize data into [{}, {}, {}]
+    data = _(raw_data).map(function(v,k) {
+      return {
+        legislator: k,
+        votes: v
+      }
+    });
+
+    $('#heatmap').attr('height', _.size(legislators)*5);
+    $('#heatmap').attr('width', _.size(votes[0])*5);
+
+    var b = heatmap('heatmap', votes, {
+      colorize: function(val) {
+        return colors[val];
+      },
+      dotsize: 4,
+      gutsize: 1,
+    });
+
+    b.render();
+
+    b.canvas.onmousemove = function(e) {
+      $('#stats').offset({top: e.pageY-70, left: e.pageX-20});
+      $('#stats').show();
+      var pos = indices(5, e);
+      var val = lookup(pos, votes);
+      document.getElementById('legislator').innerHTML = legislators[pos.i];
+      document.getElementById('j').innerHTML = pos.j+1;
+      document.getElementById('val').innerHTML = vote_key[val];
+    };
+
+    b.canvas.onclick = function(e) {
+      var pos = indices(5, e);
+      var val = lookup(pos, votes);
+
+      $('#heatmap-wrap').fadeOut('slow');
+
+      // alphabetical sort
+      //var sorted_data = _(data).sortBy(function(d,v) { return d['legislator'] });
+
+      // sort data by that column
+      var sorted_data = _(data).sortBy(function(d,v) {
+        var vote = d['votes'][pos.j + 1]
+        if (_.isNull(vote)) {
+          return -1;
+        } else {
+          return vote;
+        }
+      });
+
+      legislators = _(sorted_data).pluck('legislator');
+      votes = _(sorted_data).pluck('votes');
+      data = sorted_data;
+      b.update(votes);
+      b.render();
+      $('#heatmap-wrap').fadeIn();
+    };
+
+    $('#hires').click(function() {
+      // resize
+      $('#heatmap').attr('height', _.size(legislators)*2);
+      $('#heatmap').attr('width', _.size(votes[0])*2);
+
+      b = heatmap('heatmap', votes, {
+        colorize: function(val) {
+          return colors[val];
+        },
+        dotsize: 2,
+        gutsize: 0.00001,
+      });
+
+      // rerender
+      b.render();
+
+      // REFACTOR
+      b.canvas.onmousemove = function(e) {
+        $('#stats').offset({top: e.pageY-70, left: e.pageX-20});
+        $('#stats').show();
+        var pos = indices(2, e);
+        var val = lookup(pos, votes);
+        document.getElementById('legislator').innerHTML = legislators[pos.i];
+        document.getElementById('j').innerHTML = pos.j+1;
+        document.getElementById('val').innerHTML = vote_key[val];
+      };
+
+      b.canvas.onclick = function(e) {
+        var pos = indices(2, e);
+        var val = lookup(pos, votes);
+
+        $('#heatmap-wrap').fadeOut(1.6);
+
+        // alphabetical sort
+        //var sorted_data = _(data).sortBy(function(d,v) { return d['legislator'] });
+
+        // sort data by that column
+        var sorted_data = _(data).sortBy(function(d,v) {
+          var vote = d['votes'][pos.j + 1]
+          if (_.isNull(vote)) {
+            return -1;
+          } else {
+            return vote;
+          }
+        });
+
+        legislators = _(sorted_data).pluck('legislator');
+        votes = _(sorted_data).pluck('votes');
+        data = sorted_data;
+        b.update(votes);
+        b.render();
+        $('#heatmap-wrap').fadeIn(0.7);
+      };
+      return false;
+    });
+
+    $('#loading').hide();
+    $('#heatmap-wrap').fadeIn();
+  });
+
+</script>
+</body>
+</html>

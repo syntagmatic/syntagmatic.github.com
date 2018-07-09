@@ -1,0 +1,219 @@
+<!doctype html>
+<style>
+body {
+  font: 10px sans-serif;
+}
+
+#wrap {
+  width: 800px;
+  margin: 0 auto;
+}
+
+.legend {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.date-step {
+  border-radius: 4px;
+  padding: 4px 6px;
+  background: #eee;
+  color: #000;
+  text-decoration: none;
+}
+
+.date-step:hover {
+  background: #444;
+  color: #fff;
+}
+
+.axis {
+  shape-rendering: crispEdges;
+}
+
+.axis line,
+.axis path {
+  fill :none;
+  stroke-width: 1px;
+  stroke: #000;
+}
+
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+circle.line {
+  fill: #fff;
+}
+</style>
+<div id="wrap">
+  <h1>Unemployment</h1>
+  <p>
+  Pick an end month: 
+  <a href="#" class="date-step" data-year="January 2001">January 2001</a>
+  <a href="#" class="date-step" data-year="January 2005">January 2005</a>
+  <a href="#" class="date-step" data-year="January 2009">January 2009</a>
+  <a href="#" class="date-step" data-year="August 2012">August 2012</a>
+  </p>
+  <div id="chart"></div>
+  <h2>Notes</h2>
+  <p>
+  U-1 Persons unemployed 15 weeks or longer, as a percent of the civilian labor force
+  <br/>
+  U-2 Job losers and persons who completed temporary jobs, as a percent of the civilian labor force
+  <br/>
+  U-3 Total unemployed, as a percent of the civilian labor force (official unemployment rate)
+  <br/>
+  U-4 Total unemployed plus discouraged workers, as a percent of the civilian labor force plus discouraged workers
+  <br/>
+  U-5 Total unemployed, plus discouraged workers, plus all other persons marginally attached to the labor force, as a percent of the civilian labor force plus all persons marginally attached to the labor force
+  <br/>
+  U-6 Total unemployed, plus all persons marginally attached to the labor force, plus total employed part time for economic reasons, as a percent of
+  </p>
+</div>
+<script src="lib/underscore.js"></script>
+<script src="lib/underscore.string.js"></script>
+<script src="lib/d3.v2.js"></script>
+<script src="lib/queue.js"></script>
+<script src="lib/utils.js"></script>
+<script>
+var margin = {top: 20, right: 30, bottom: 20, left: 30},
+    width = 800 - margin.left - margin.right,
+    height = 325 - margin.top - margin.bottom,
+    xscale = d3.time.scale().range([0,width]),
+    yscale = d3.scale.linear().range([height,0]),
+    timeFormat = d3.time.format("%B %Y");
+
+var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+var sources = [
+  {
+    name: "U-1",
+    source: "data/bls-unemployment-U-1.csv"
+  },
+  {
+    name: "U-2",
+    source: "data/bls-unemployment-U-2.csv"
+  },
+  {
+    name: "U-3",
+    source: "data/bls-unemployment-U-3.csv"
+  },
+  {
+    name: "U-4",
+    source: "data/bls-unemployment-U-4.csv"
+  },
+  {
+    name: "U-5",
+    source: "data/bls-unemployment-U-5.csv"
+  },
+  {
+    name: "U-6",
+    source: "data/bls-unemployment-U-6.csv"
+  },
+];
+
+// load data
+var q = queue();
+_(sources).each(function(v) {
+  q.defer(utils.load_csv(v.source))
+});
+q.await(create_graph);
+
+function create_graph(error, results) {
+  // clean up BLS data format
+  var data = _(results).map(function(raw,i) {
+    _(raw).each(function(d) {
+      delete d[''];
+      delete d['Annual'];
+    });
+    return {
+      key: sources[i].name,
+      values: utils.date_value(raw)
+    }
+  });
+
+  var flattened = _(data).chain().pluck('values').flatten().value();
+  var values = _(flattened).pluck('value');
+  var dates = _(flattened).pluck('date');
+
+  var minDate = (new Date(d3.min(dates))).getTime();
+  var currentMaxDate = (new Date(2001, 0)).getTime();
+  var maxDate = (new Date(d3.max(dates))).getTime();
+
+  var color = d3.scale.category10();
+
+  xscale.domain([minDate, currentMaxDate]);
+  yscale.domain([0.95*d3.min(values), 1.05*d3.max(values)]);
+
+  var xAxis = d3.svg.axis().scale(xscale);
+  var yAxis = d3.svg.axis().scale(yscale).orient("right");
+
+  var svg = d3.select("#chart")
+    .data(_(data).map(function(d) { return d.values }))
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  // Add the clip path.
+  svg.append("svg:clipPath")
+      .attr("id", "clip")
+    .append("svg:rect")
+      .attr("width", width)
+      .attr("height", height);
+
+  svg.append("svg:g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("svg:g")
+      .attr("class", "y axis")
+      .attr("transform", "translate(" + width + ",0)")
+      .call(yAxis);
+
+  svg.selectAll("path.line")
+      .data(_(data).map(function(d) {
+        return d.values;
+      }))
+      .enter().append("path")
+      .attr("class", "line")
+      .attr("stroke", function(d,i) { return color(i) })
+      .attr("clip-path", "url(#clip)")
+      .attr("d", d3.svg.line()
+        .x(function(d) { return xscale(d.date); })
+        .y(function(d) { return yscale(d.value); }));
+
+  svg 
+    .append("g").attr("class", "legend")
+    .selectAll("text")
+    .data(_(data).pluck('key'))
+    .enter().append("text")
+      .style("fill", function(d,i) { return color(i) })
+      .attr("text-anchor", "end")
+      .attr("alignment-baseline", "middle")
+      .attr("x", function(d,i) { return xscale(data[i].values[0].date) - 4;})
+      .attr("y", function(d,i) { return yscale(data[i].values[0].value);})
+      .text(function(d) { return d });
+
+  // transition
+  d3.selectAll(".date-step")
+    .on("click", function() {
+      var currentMaxDate = timeFormat.parse(d3.select(this).attr("data-year")).getTime();
+      xscale.domain([minDate, currentMaxDate]);
+
+      var t = svg.transition().duration(1500).ease('quad-in-out');
+      t.selectAll(".legend text")
+      .attr("x", function(d,i) { return xscale(data[i].values[0].date) - 4;})
+      .attr("y", function(d,i) { return yscale(data[i].values[0].value);});
+      t.select(".x.axis").call(xAxis);
+      t.selectAll("path.line").attr("d", d3.svg.line()
+        .x(function(d) { return xscale(d.date); })
+        .y(function(d) { return yscale(d.value); }));
+  });
+};
+
+</script>

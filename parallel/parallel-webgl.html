@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>Parallel Coordinates</title>
+        
+  <script type="text/javascript" src="../lib/d3/d3.js"></script>
+  <script type="text/javascript" src="../lib/d3/d3.csv.js"></script>
+
+  <script type="text/javascript" src="../lib/jquery.js"></script>
+  <script type="text/javascript" src="../lib/underscore.js"></script>
+  <script type="text/javascript" src="../lib/backbone.js"></script>
+
+  <script src="../lib/jquery-ui-1.8.11.custom.min.js"></script>
+  <script type="text/javascript" src="filter.js"></script>
+  
+  <!-- SlickGrid -->
+  <link rel="stylesheet" href="../lib/slickgrid/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+  <script src="../lib/slickgrid/jquery.event.drag-2.0.min.js"></script>
+  <script src="../lib/slickgrid/slick.core.js"></script>
+  <script src="../lib/slickgrid/slick.grid.js"></script>
+  <script src="../lib/slickgrid/slick.dataview.js"></script>
+  <script src="../lib/slickgrid/slick.pager.js"></script>
+  <script src="js/Three.js"></script>
+  <script src="grid.js"></script>
+  <script src="options.js"></script>
+  <link rel="stylesheet" href="style.css" type="text/css" charset="utf-8" />
+<style type="text/css">
+#main {
+  width: 100%;
+}
+
+#parallel {
+  width: 100%;
+  height: 400px;
+}
+.foreground path,
+.highlight path {
+  stroke: #c42;
+}
+    </style>
+</head>
+
+<body class="inverted">
+<div id="nav">
+  <h1>Two Micron All Sky Survery</h1>
+  <div class="widget right toggle">
+	</div>
+  <div><a href="#" id="no_ticks" class="right toggle">Hide Ticks</a></div>
+  <p class="intro left clear">
+  </p>
+</div>
+<div id="main">
+  <div id="parallel">
+  </div>
+  <div style="width:100%;">
+      <div id="pager" style="width:100%;height:20px;"></div>
+      <div id="myGrid" style="width:100%;height:280px;"></div>
+  </div>
+  <script type="text/javascript">
+
+
+
+  d3.csv("data/hmda-30000.csv", function(data) {
+    var dimensions = d3.keys(data[0]);
+    
+
+    /* WEBGL ******/
+    /*************/
+
+    (function() {
+
+      var width = $('#parallel').width(),
+          height = $('#parallel').height();
+
+      var renderer = new THREE.WebGLRenderer({antialias: true});
+      renderer.setSize(width, height);
+      $('#parallel').html(renderer.domElement);
+
+      renderer.setClearColorHex(0x0D0D0D, 1.0);
+      renderer.clear();
+
+      // new THREE.PerspectiveCamera( FOV, viewAspectRatio, zNear, zFar );
+      var camera = new THREE.PerspectiveCamera(45, width/height, 1, 10000);
+      camera.position.z = 300;
+
+      var scene = new THREE.Scene();
+      var lineGeo = new THREE.Geometry();
+      var range = {};
+      _(dimensions).each(function(col) {
+        var min = _(data).chain().pluck(col).min().value(),
+            max = _(data).chain().pluck(col).max().value();
+        range[col] = {
+          min: min,
+          max: max,
+          size: max-min
+        };
+      });
+      _(data).each(function(d) {
+        var x = 0; 
+        var last = 0;
+        for (k in d) {
+          var curr = scaleY((range[k].max-d[k])/range[k].size);
+          lineGeo.vertices.push(
+            v(scaleX(x),last,0), v(scaleX(x+=1),curr,0)
+          );
+          last = curr;
+        }
+      });
+
+      var lineMat = new THREE.LineBasicMaterial({
+        color: 0xFFDD00,
+        lineWidth: 1
+      });
+      var line = new THREE.Line(lineGeo, lineMat);
+      line.type = THREE.Lines;
+      scene.add(line);
+
+      renderer.render(scene, camera);
+
+
+      /* Utility Functions */
+
+      function v(x,y,z){ 
+        return new THREE.Vertex(new THREE.Vector3(x,y,z)); 
+      };
+      function scaleX(x) {
+        return (x/dimensions.length)*width-width/2;
+      };
+      function scaleY(y) {
+        if (!_.isNumber(y)) return -height/2;
+        return y*height-height/2;
+      };
+
+    })();
+
+    
+    /*************/
+    /* End WEBGL */
+
+
+    var filter_link = new Filter();
+
+    filter_link.set({data: data});
+
+    //parallel(filter_link);
+
+    var slicky = new grid({
+      model: filter_link,
+      columns: dimensions
+    });
+
+    slicky.update();
+  });
+  
+  </script>
+  <!--
+     Copyright 2011, Kai Chang
+	-->
+</div>
+</body>
+</html>

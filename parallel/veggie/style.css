@@ -1,0 +1,68 @@
+body {
+  font-family: "Lucida Grande", arial, helvetica, clean, sans-serif;
+  font-size: 13px;
+  line-height: 1.35em;
+}
+#main {
+  width: 1360px;
+  margin: 0 auto;
+}
+/*SlickGrid */
+.slick-header-column {
+  font-weight:bold;
+  border-right: none !important;
+}
+.slick-cell {
+  border: none !important;
+}
+.slick-row.odd {
+  background: rgba(0,0,0,0.03);
+}
+.slick-row {
+  height: 20px !important;
+}
+
+/* Parallel Coordinates */
+#parallel-coordinates {
+  position: relative;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+#parallel-coordinates canvas {
+  position: absolute;
+}
+#parallel-coordinates .axis,
+#parallel-coordinates .axis-data,
+#parallel-coordinates .axis-filter {
+  position: absolute;
+  display: block;
+}
+#parallel-coordinates .axis {
+  width: 40px;
+}
+#parallel-coordinates .axis:hover {
+  background: rgba(55,55,55,0.2);
+}
+#gray {
+  color: #888;
+}
+.axis-data {
+  z-index: 9;
+}
+.axis-filter {
+  left: 12px;
+  width: 16px;
+  z-index: 10;
+}
+.axis-filter.active {
+  background: rgba(55,55,55,0.3);
+}
+#footer {
+  padding: 60px;
+  color: #888;
+  font-size:13px;
+}
+

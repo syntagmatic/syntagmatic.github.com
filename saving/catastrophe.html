@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      html, body {
+        background: #f9f9f9;
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 15px;
+        width: 1050px;
+        margin: 0 auto;
+      }
+      input {
+        text-align: right;
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 15px;
+        border: 0;
+        width: 24px;
+        background: #fff;
+        font-weight: bold;
+        padding: 2px 8px 2px 2px;
+      }
+      canvas {
+        margin: 0 22px 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Compounding with Catastrophes</h2>
+    <p>Each year, the investment grows <input type="text" id="growth" value="7"></input>% with a <input type="text" id="crash" value="7"></input>% chance to catastrophically lose <input type="text" id="loss" value="50"></input>% of its value. The simulation is run over <input type="text" id="years" value="30"></input> years.</p>
+    <p>120 simulations are performed, with each result plotted as a sparkline. Lines are colored black for nominal gain and red for a loss over the period.</p>
+    <div id="charts"></div>
+  </body>
+  <script>
+    var growth = 0.07,
+        crash = 0.07,
+        loss = 0.5,
+        years = 30;
+
+    run(120);
+
+    function run(num) {
+      for (var i = 0; i <= num; i++) {
+        var data = simulate(30);
+        document.body.appendChild(chart(data));
+      }
+    };
+
+    function simulate(years) {
+      var results = [1];
+      for (var i = 1; i <= years; i++) {
+        results[i] = simulateYear(results[i-1]);
+      }
+      return results;
+    };
+
+    function simulateYear(p) {
+      var isCrash = Math.random() < crash ? true : false;
+      return isCrash ?
+        p * (1 - loss) * (1 + growth):
+        p * (1 + growth);
+    };
+
+    function chart(data) {
+      var len = data.length;
+      var max = 7.612;
+      var min = 0;
+
+      var canvas = document.createElement("canvas");
+      canvas.width = 54;
+      canvas.height = 52;
+      var ctx = canvas.getContext("2d");
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#ddd";
+      ctx.beginPath();
+      ctx.moveTo(0,y(data[0]));
+      ctx.lineTo(canvas.width,y(data[0]));
+      ctx.stroke();
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = data[len-1] < 1 ? "red" : "black";
+      
+      ctx.beginPath();
+      ctx.moveTo(0, y(data[0]));
+      for (var i = 1; i <= len; i++) {
+        ctx.lineTo(x(i), y(data[i]));
+      }
+      ctx.stroke();
+
+      function y(d) {
+        return 2 + (canvas.height - 4) * (1 - (d - min) / (max-min));
+      };
+
+      function x(i) {
+        return canvas.width * i / len;
+      };
+
+      return canvas;
+    };
+  </script>
+</html>

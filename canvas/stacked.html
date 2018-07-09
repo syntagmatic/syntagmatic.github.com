@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<canvas id="stacked" height="200" width="600"></canvas>
+<script type="text/javascript" src="../lib/underscore.js"></script>
+<script type="text/javascript" src="../lib/d3/d3.js"></script>
+<script type="text/javascript" src="../lib/d3/d3.layout.js"></script>
+<script>
+/* generate some data in a 2d matrix*/
+var data = _(_.range(10)).map(function() {
+    return _(_.range(120)).map(function() {
+        return Math.random();
+    });
+});
+
+/* transform to {x,y} format for d3.layout */
+var data_xy = _(data).map(function(row) {
+    return _(row).map(function(d, i) {
+        return {
+            x: i,
+            y: d
+        };
+    });
+});
+
+/* use d3.layout to add y0 offsets */
+var data_stacked = d3.layout.stack().offset('silhouette')(data_xy);
+var scale = d3.scale.category10();
+
+/* set up canvas, get tallest column height */
+var canvas = document.getElementById('stacked');
+var ctx = canvas.getContext('2d');
+var w = 600,
+    h = 200;
+    my = d3.max(data_stacked, function(d) {
+        return d3.max(d, function(d) {
+            return d.y0 + d.y;
+        });
+    });
+
+/* render to canvas */
+_(data_stacked).each(function(row, i) {
+    ctx.fillStyle = scale(i);
+    _(row).each(function(d) {
+        ctx.fillRect( 5*d.x, h-(d.y+d.y0)*h/my, 4, h*d.y/my);
+    });
+});
+</script>

@@ -1,0 +1,31 @@
+[
+  {
+    cluster: [
+      "Balyasny Asset Management L.P",
+      "Balyasny Asset Management L.P.",
+      "Balyasny Asset Management, L.P."
+    ],
+    proposed: "Balyasny Asset Management L.P"
+  },
+  {
+    cluster: [
+      "GSIP ERISA MASTER COMPANY (IRELAND) LIMITED",
+      "GSIP Erisa Master Company (Ireland) Limited"
+    ],
+    proposed: "GSIP Erisa Master Company (Ireland) Limited"
+  },
+  {
+    cluster: [
+      "IGNIS Asset Management Limited",
+      "Ignis Asset Management Limited"
+    ],
+    proposed: "IGNIS Asset Management Limited"
+  },
+  {
+    cluster: [
+      "Pioneer Funds - U.S. Credit Recovery 2014",
+      "Pioneer Funds - US Credit Recovery 2014"
+    ],
+    proposed: "Pioneer Funds - U.S. Credit Recovery 2014"
+  }
+]

@@ -1,0 +1,18 @@
+<canvas id="tutorial" width="150" height="150"></canvas>
+
+<script src="chroma.pack.js"></script>
+<script>
+  var canvas = document.getElementById('tutorial');
+  var ctx = canvas.getContext('2d');
+  var width = canvas.width = document.body.clientWidth;
+  var height = canvas.height = document.body.clientHeight;
+
+  // horizontal hue gradient
+  for (var i = 0; i < width; i++) {
+    for (var j = 0; j < height; j++) {
+      ctx.fillStyle = chroma.lab(i/width,0.5,(j/height-0.5)).hex();
+      ctx.fillRect(i,j,1,1);
+    }
+  }
+
+</script>

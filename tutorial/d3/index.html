@@ -1,0 +1,242 @@
+<!doctype html>
+
+<title>Intro to Data Visualization</title>
+<style>
+body {
+  font-size: 15px;
+  font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+  margin: 0 auto 80px;
+  width: 640px;
+  background: #f2f1f0;
+}
+img {
+  border: 1px solid #ccc;
+  box-shadow: 0px 4px 10px #a3a3a3;
+  background: rgba(254,254,254,0.9);
+  padding: 20px;
+  margin: 0;
+  width: 600px;
+}
+h1, h2 {
+  margin: 60px 0 20px;
+  border-bottom: 1px dashed #bbb;
+}
+h3 {
+  margin: 30px 0 10px;
+}
+h4 {
+  margin: 20px 0 0;
+}
+a {
+  color: #06a;
+  background: #fff;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+ul {
+  margin: 0 20px;
+  padding: 0;
+}
+li {
+  padding: 4px 0;
+}
+code {
+  overflow-x: scroll;
+}
+em {
+  color: #666;
+}
+</style>
+<script src=highlight.pack.js></script>
+<link rel="stylesheet" href="hemisu-light.css">
+<script>
+  hljs.tabReplace = '  ';
+  hljs.initHighlightingOnLoad();
+</script>
+<h1>Intro to D3.js</h1>
+
+<p>This class is an introduction to <a href="http://d3js.org">Data-Driven Documents</a>, a javascript library for web visualization by <a href="http://bost.ocks.org/mike">Mike Bostock</a>.</p>
+
+<h4>Visual Example Gallery</h4>
+
+<p><a href="https://github.com/mbostock/d3/wiki/Gallery"><img src="d3.png" alt="Visual Gallery" title="" /></a></p>
+
+<h4>Mike Bostock</h4>
+
+<p><a href="http://bost.ocks.org/mike"><img src="bostocks.png" alt="Mike Bostock" title="" /></a></p>
+
+<h4>mbostock's <a href="http://bl.ocks.org">bl.ocks</a></h4>
+
+<p><a href="http://bl.ocks.org/mbostock"><img src="blocks.png" alt="Mike Bostock's bl.ocks" title="" /></a></p>
+
+<h3>Class Outline</h3>
+
+<ul>
+<li>What is D3?</li>
+<li>What is data? What is a document?</li>
+<li>How do I learn to make a basic chart?</li>
+<li>How do I stay up-to-date with the latest changes to D3?</li>
+</ul>
+
+<p>A basic to intermediate understanding of HTML and JavaScript is required to get the most out of this class. This class will cover advanced material in a flexible, discussion-oriented format. Participants are expected to have some prior knowledge of Javascript. Since D3 uses advanced JavaScript and HTML5 techniques, we may get into fairly technical discussions based on the interest and questions of those participating. </p>
+
+<h3>Class structure</h3>
+
+<ul>
+<li><em>0:00-0:15</em> Introduction</li>
+<li><em>0:15-0:30</em> Learning resources</li>
+<li><em>0:15-0:45</em> Concepts for web visualization</li>
+<li><em>0:45-1:30</em> Coding Exercise</li>
+<li><em>1:30-2:00</em> Discussion</li>
+</ul>
+
+<h3>Stuff I've done with d3</h3>
+
+<p>Various examples on <a href="http://exposedata.com/">Expose Data</a> and <a href="http://bl.ocks.org/syntagmatic">bl.ocks.org</a>.</p>
+
+<h4>Average Prices</h4>
+
+<p><a href="http://bl.ocks.org/3891711"><img src="average-prices.png" alt="Average Prices" title="" /></a></p>
+
+<h4>Julia Set</h4>
+
+<p><a href="http://bl.ocks.org/3736720"><img src="julia.png" style="padding:0px;width:640px;"/></a></p>
+
+<h4>Parallel Coordinates</h4>
+
+<p>Also check out the <a href="http://syntagmatic.github.com/parallel-coordinates">library</a> I'm working on.</p>
+
+<p><a href="http://bl.ocks.org/d/2420080/"><img src="parallel-coordinates.png" alt="Parallel Coordinates" title="" /></a></p>
+
+<h4>Render Queue</h4>
+
+<p><a href="http://bl.ocks.org/d/3341641/"><img src="render-queue.png" style="padding:0px;width:640px;"/></a></p>
+
+<h3>Motion Charts</h3>
+
+<p>D3.js puts a lot of effort into working with data-driven transitions. Why?</p>
+
+<p>Check out this video by Hans Rosling on data storytelling with statistical graphics. There's even a <a href="http://bost.ocks.org/mike/nations/">version of this chart</a> by Mike Bostock in D3.</p>
+
+<iframe width="640" height="360" src="http://www.youtube.com/embed/jbkSRLYSojo" frameborder="0" allowfullscreen></iframe>
+
+<h3>Dot Enter Mixtapes and Tributary</h3>
+
+<p>Want to learn D3 in 30 minutes? Check out these <a href="http://vimeo.com/search?q=enjalot">screencasts</a> and follow along with the live editor <a href="http://enjalot.com/">Tributary</a></p>
+
+<iframe src="http://player.vimeo.com/video/49741435?portrait=0&amp;badge=0" width="640" height="400" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+
+<h3>Basic Charts</h3>
+
+<p>These charts provide examples of creating a basic chart with an external data file in <a href="http://en.wikipedia.org/wiki/Comma-separated_values">CSV</a> and TSV formats.</p>
+
+<ul>
+<li>Loading and parsing data</li>
+<li>Creating quantitative scales</li>
+<li>Visualizing data</li>
+<li>Creating axes</li>
+<li>Transitioning data with animation</li>
+</ul>
+
+<h4>Examples</h4>
+
+<ul>
+<li><a href="http://bl.ocks.org/3883195">Area Chart</a></li>
+<li><a href="http://bl.ocks.org/3883245">Line Chart</a></li>
+<li><a href="http://bl.ocks.org/3884955">Multi-Series Line Chart</a></li>
+<li><a href="http://bl.ocks.org/3885211">Stacked Area Chart</a></li>
+<li><a href="http://bl.ocks.org/3885304">Bar Chart</a></li>
+<li><a href="http://bl.ocks.org/3886208">Stacked Bar Chart</a></li>
+<li><a href="http://bl.ocks.org/3886394">Normalized Stacked Bar Chart</a></li>
+<li><a href="http://bl.ocks.org/3887051">Grouped Bar Chart</a></li>
+<li><a href="http://bl.ocks.org/3887118">Scatterplot</a></li>
+<li><a href="http://bl.ocks.org/d/3201160/">Scatterplot with Dimension Dropdowns</a></li>
+<li><a href="http://bl.ocks.org/3887193">Donut Chart</a></li>
+<li><a href="http://bl.ocks.org/3887235">Pie Chart</a></li>
+<li><a href="http://bl.ocks.org/3888852">Donut Multiples</a></li>
+<li><a href="http://bl.ocks.org/2368837">Bar Chart with Negative Values</a></li>
+</ul>
+
+<p>Find more examples in the <a href="https://github.com/mbostock/d3/wiki/Gallery">wiki gallery</a> and <a href="http://bl.ocks.org/mbostock">Mike's bl.ocks</a>.</p>
+
+<h3>Mathematical Visualization</h3>
+
+<p><a href="http://www.jasondavies.com/"><img src="jason-davies.png" alt="Jason Davies" title="" /></a></p>
+
+<h3>API Reference</h3>
+
+<p>The definitive guide to D3.</p>
+
+<p><a href="https://github.com/mbostock/d3/wiki/API-Reference"><img src="api.png" alt="API Reference" title="" /></a></p>
+
+<h3>Compatability</h3>
+
+<ul>
+<li><a href="http://caniuse.com/canvas">Canvas</a></li>
+<li><a href="http://caniuse.com/svg">SVG</a></li>
+<li><a href="http://caniuse.com/webgl">WebGL</a></li>
+</ul>
+
+<h3>Color</h3>
+
+<ul>
+<li><a href="http://www.w3schools.com/cssref/css_colors.asp">CSS Colors</a></li>
+<li><a href="http://sixrevisions.com/css/colors-webdesign/">Guide to CSS Colors</a></li>
+<li><a href="http://kuler.adobe.com/">Adobe Kuler</a></li>
+<li><a href="https://github.com/gka/chroma.js">Chroma.js</a></li>
+</ul>
+
+<p><a href="http://vis4.net/blog/posts/avoid-equidistant-hsv-colors/"><img src=allcolors.png alt="Named and Brewer Colors in Chromas.js" ></img></a></p>
+
+<h3>More Resources</h3>
+
+<ul>
+<li><a href="http://d3js.org/">d3.js</a></li>
+<li><a href="https://groups.google.com/group/d3-js">Mailing List</a></li>
+<li><a href="https://github.com/mbostock/d3/wiki/Tutorials">Tutorials and Talks</a></li>
+<li><a href="http://alignedleft.com/tutorials/d3/">Scott Murray's D3 Tutorials</a></li>
+<li><a href="http://enjalot.github.com/intro-d3">Ian Johnson's Intro Materials</a></li>
+<li><a href="https://developer.mozilla.org/en/SVG">MDN SVG Tutorial</a></li>
+</ul>
+
+<h4>d3.v3</h4>
+
+<p>It's <a href="https://github.com/mbostock/d3/wiki/Release-Notes">coming</a></p>
+
+<h3>Other Useful Libraries</h3>
+
+<ul>
+<li><a href="http://underscorejs.org/">Underscore.js</a></li>
+<li><a href="http://backbonejs.org/">Backbone.js</a></li>
+<li><a href="http://epeli.github.com/underscore.string/">Underscore String</a></li>
+<li><a href="https://github.com/syntagmatic/underscore.math/blob/master/underscore.math.js">Underscore Math</a></li>
+<li><a href="http://misoproject.com/dataset/">Miso Dataset</a></li>
+<li><a href="http://misoproject.com/dataset/">Miso Storyboard</a></li>
+</ul>
+
+<h3>Other Visualization Libraries</h3>
+
+<ul>
+<li><a href="http://raphaeljs.com/">Raphael</a></li>
+<li><a href="http://ggplot2.org/">ggplot2</a></li>
+<li><a href="http://processingjs.org/">Processing.js</a></li>
+<li><a href="http://mrdoob.github.com/three.js/">three.js</a></li>
+</ul>
+
+<h3>Data Tools</h3>
+
+<ul>
+<li><a href="http://code.google.com/p/google-refine/">GoogleRefine/OpenRefine</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Python_(programming_language)">Python</a></li>
+<li><a href="http://en.wikipedia.org/wiki/R_(programming_language)">R</a></li>
+<li><a href="http://www.libreoffice.org/">LibreOffice</a></li>
+<li><a href="http://www.postgresql.org/">Postgres</a></li>
+</ul>
+
+<h3>Data</h3>
+
+<ul>
+<li><a href="https://explore.data.gov/catalog/raw?q=gravesite&amp;sortBy=last_modified">Gravesites of US Veterans</a> - <a href="http://syntagmatic.github.com/parallel-coordinates/examples/veterans.html">Wyoming in parallel coordinates</a></li>
+</ul>

@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<head>
+<script type="text/javascript" src="js/d3.v2.min.js"></script>
+<script type="text/javascript" src="js/underscore.js"></script>
+<script type="text/javascript" src="js/zepto.js"></script>
+<style>
+h2 {
+position:absolute;
+top:10px;
+left:20px;
+font-size:38px;
+color:#ccc;
+text-transform:uppercase;
+font-family:Arial, sans-serif;
+font-weight:normal;
+}
+path {
+cursor:pointer;
+}
+</style>
+</head>
+<body>
+<h2></h2>
+<div id="canvas"></div>
+<script type="text/javascript">
+$(function() {
+	var w = $("#canvas").width(),
+			h = 500,
+			color = d3.interpolateRgb("#86E0B3", "#4D8AC6");
+
+	var graph = d3.select("#canvas")
+								.append("svg")
+								.attr("width", w)
+								.attr("height", h);
+
+	d3.json("data/countryStream.json", function(data) {
+		_(data).each(function(row) {
+			row.values = _(row.values).sortBy(function(d) {
+				return d.x;
+			});
+		});
+		var dt = d3.layout.stack()
+							 .values(function(d) { return d.values });
+		var my = d3.max(dt(data), function(d) {
+					return d3.max(d.values, function(d) {return d.y0 + d.y});
+				}),
+				m = 64,
+				mx = m-1;
+
+		var area = d3.svg.area()
+    						 .x(function(d) { return d.x * w / mx; })
+    						 .y0(function(d) { return h - d.y0 * h / my; })
+    						 .y1(function(d) { return h - (d.y + d.y0) * h / my; });
+
+		graph.selectAll("path")
+				 .data(data)
+				 .enter()
+				 .append("path")
+				 .on("mouseover", function(d) {
+						 $('h2').text(d.name);
+					})
+				 .on("mouseout", function(d) {
+						 $('h2').text("");
+					})
+				 .style("fill", function() {
+						return color(Math.random());
+					})
+				 .attr("d", function(d) {return area(d.values)})
+				 .append("title")
+				 .text(function(d) {return d.name});
+	});
+});
+</script>

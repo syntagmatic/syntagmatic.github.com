@@ -1,0 +1,91 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial;
+  background: #333;
+  color: #f9f9f9;
+  font-size: 13px;
+}
+#heatmap {
+  float: left;
+}
+#heatmap-wrap {
+  margin-top: 90px;
+  padding: 8px;
+  float: left;
+  display: none;
+	padding-left:20px;
+	position:relative;
+}
+#hover {
+	position:absolute;
+	left:20px;
+}
+#results {
+  float:left;
+}
+#results-wrap {
+  padding: 8px;
+  float: left;
+  clear: left;
+}
+#party-wrap {
+  margin-top: 90px;
+  padding: 8px;
+	position: absolute;
+	left:0;
+  background:#333;
+	opacity:.8;
+}
+#stats {
+  position: fixed;
+	top:98px;
+  display: none;
+  line-height:1.4em;
+	width: 380px;
+  color: #1a1a1a;
+  background: white;
+  background: rgba( 255, 255, 255, 0.8);
+  padding: 8px;
+  z-index: 8;
+	right:0;
+}
+#stats ul {
+  margin: 0;
+  padding: 0;
+}
+#topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 90px;
+  width: 100%;
+  color: #f9f9f9;
+  background: white;
+  background: rgba( 15, 15, 45, 0.80);
+  border-bottom: 1px solid #111;
+  z-index: 4;
+}
+a {
+  color: #fd2;
+}
+ul {
+  list-style: none;
+}
+h1 {
+  font-size: 15px;
+  margin: 6px 0 0px 12px;
+  padding: 0;
+}
+p {
+  margin: 8px 12px;
+}
+#loading {
+  margin-top: 180px;
+  font-size: 48px;
+  text-align:center;
+}
+#options {
+  float: right;
+  padding: 6px;
+}

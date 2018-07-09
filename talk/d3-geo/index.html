@@ -1,0 +1,134 @@
+<!DOCTYPE html><html><head><title></title><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" /><style type='text/css'>
+body {
+  font-family: 'Helvetica';
+  letter-spacing:-5px;
+  color:#000;
+  background:#fff;
+  margin:0;
+  padding:0;
+  font-weight:bold;
+  text-shadow: -2px 2px 1px rgba(255,255,255,1),2px -2px 1px rgba(255,255,255,1),2px 2px 1px rgba(255,255,255,1), -2px -2px 1px rgba(255,255,255,1);
+}
+
+h1, h2, h3, p {
+  margin:0;
+}
+
+em, a {
+  font-style:normal;
+  color:#8dbd0c;
+}
+
+a {
+  color: #000;
+  text-decoration:none;
+}
+
+div {
+  position:absolute;
+  top:0;
+  left:0;
+}
+</style><script type='text/javascript'>
+window.onload = function() {
+    var s = document.getElementsByTagName('div'), cur = 0;
+    if (!s) return;
+    function go(n) {
+        cur = n;
+        var i = 1e3, e = s[n];
+        for (var k = 0; k < s.length; k++) s[k].style.display = 'none';
+        e.style.display = 'inline';
+        e.style.fontSize = i + 'px';
+        if (e.firstChild.nodeName === 'IMG') {
+            document.body.style.backgroundImage = 'url(' + e.firstChild.src + ')';
+            e.firstChild.style.display = 'none';
+        } else {
+            document.body.style.backgroundImage = '';
+            document.body.style.backgroundColor = e.style.backgroundColor;
+        }
+        while (
+            e.offsetWidth > window.innerWidth ||
+            e.offsetHeight > window.innerHeight) {
+            e.style.fontSize = (i -= 10) + 'px';
+            if (i < 0) break;
+        }
+        e.style.marginTop = ((window.innerHeight - e.offsetHeight) / 2) + 'px';
+        if (window.location.hash !== n) window.location.hash = n;
+        document.title = e.textContent || e.innerText;
+    }
+    document.onclick = function() {
+        if (event.target.tagName == "A") return; // prevent link clicks from progressing slide in chrome
+        go(++cur % (s.length));
+    };
+    document.onkeydown = function(e) {
+        (e.which === 39) && go(Math.min(s.length - 1, ++cur));
+        (e.which === 37) && go(Math.max(0, --cur));
+    };
+    function parse_hash() {
+        return Math.max(Math.min(
+            s.length - 1,
+            parseInt(window.location.hash.substring(1), 10)), 0);
+    }
+    if (window.location.hash) cur = parse_hash() || cur;
+    window.onhashchange = function() {
+        var c = parse_hash();
+        if (c !== cur) go(c);
+    };
+
+    go(cur);
+};
+</script></head><body>
+<div><img src="img/geo.png"/><a href="http://bl.ocks.org/4206810">d3.geo</a></div>
+<div>what is d3?</div>
+<div><img src="img/javascript.png"/>javascript</div>
+<div><img src="img/css.png"/>&lt;html&gt;<br/>&lt;style&gt;<br/>&lt;svg&gt;<br/>&lt;canvas&gt;</div>
+<div>why?</div>
+<div><img src="img/drought.png"/><a href="http://bost.ocks.org/mike/drought/">interactive animated thematic maps</a></div>
+<div><a href="http://bl.ocks.org/3711652">projection transitions</a></div>
+<div>how do you learn d3?</div>
+<div><img src="img/make-a-map.png"/><a href="http://bost.ocks.org/mike/map/">maybe start with this map-making tutorial</a></div>
+<div><img src="img/docs.png"/><a href="https://github.com/mbostock/d3/wiki/API-Reference">api reference</a></div>
+<div><img src="img/projections.png"/><a href="https://github.com/d3/d3-plugins/tree/master/geo">d3.geo plugin</a></div>
+<div><img src="img/mbostock.png"/><a href="http://bl.ocks.org/mbostock">fork<br/>mbostock's<br/>code!</a></div>
+<div>"it was supposed to be so easy and d3 was supposed to take care of everything for me"<br/>&nbsp;<br/>
+  - <em>a frustrated d3 user</em></div>
+<div>expect to learn</div>
+<div>web technologies<br/>
+functional programming<br/>
+linear algebra<br/>
+geometry<br/>
+topology<br/>
+data structures<br/>
+algorithms<br/>
+information design<br/>
+perception and interaction</div>
+<div>web technologies<br/>
+functional programming<br/>
+linear algebra<br/>
+geometry<br/>
+<em>topology</em><br/>
+data structures<br/>
+algorithms<br/>
+information design<br/>
+perception and interaction</div>
+<div><img src="img/jason.png" /><a href="http://www.jasondavies.com/">Jason Davies</a></div>
+<div><img src="img/interrupted.png" /><a href="http://bl.ocks.org/4481520">interrupted projections</a></div>
+<div><img src="img/waterman-butterfly.png" /><a href="http://www.jasondavies.com/maps/waterman-butterfly/">polyhedron</a></div>
+<div><p><img src="img/topology.gif" width=640 height=640 style="position: absolute;z-index:-1;"/><img src="img/topology.gif" width=640 height=640 style="position: absolute; left:640px; z-index:-1;"/><a href="http://en.wikipedia.org/wiki/Topology">topology matters</a></p></div>
+<div><img src="img/greek-to-me.png"/><a href="https://github.com/d3/d3-plugins/blob/master/geo/projection/eckert1.js">how do they type with these greek symbols?</a></div>
+<div style="color: #f2f2f2; text-shadow: 1px 1px 10px black;"><img src="img/ocean.jpg" />
+  <span style="color: #ccc;">"you'll know what I mean when you've ever looked down in quiet water while floating over the edge of an abyss where you see light blue and green aquatic life and then within a few meters it becomes dark blue, near black at a horribly steep descent."</span><br/>
+- on reading Mike Bostock's JavaScript code</div>
+<div style="background: #888;margin-top:40px;">&nbsp;<img src="http://www.fishingreports.com/wp-content/uploads/2012/05/thermocline-fishing.jpg"/></div>
+<div style="text-shadow: 1px 1px 10px black;"><img src="img/heightmap.png"/><a href="http://bl.ocks.org/3289530">hcl colored heightmap</a></div>
+
+<div><img src="img/hexbin.png" /><a href="http://bl.ocks.org/4330486">hexagonal binning</a></div>
+<div><img src="img/tile.png" /><a href="http://bl.ocks.org/4150951">raster tiles</a></div>
+<div><img src="img/tilemill.png" /><a href="http://mapbox.com/tilemill/">tilemill</a></div>
+<div><img src="img/racial-divide.png" /><a href="http://vallandingham.me/visualizing_the_racial_divide.html">force-directed cartogram</a></div>
+<div><img src="img/cartogram.png" /><a href="http://prag.ma/code/d3-cartogram/#deaths/2010">topology-preserving cartogram</a></div>
+<div><img src="img/topojson.png" /><a href="https://github.com/mbostock/topojson/wiki">TopoJSON</a></div>
+<div><img src="img/four-color.png" /><a href="http://bl.ocks.org/4653097">Automatic coloring</a></div>
+<div><img src="img/composite.png" /><a href="http://cartography.oregonstate.edu/demos/CompositeMapProjection/">adaptive composite map projections</a></div>
+<div>i had very little to do with any of this<br/>- kai<br/>@syntagmatic<br/><a href="https://twitter.com/syntagmatic" style="color:#97e4ea">twitter</a> <a href="https://github.com/syntagmatic" style="color:#eac498">github</a><br/><a href="http://www.meetup.com/Bay-Area-d3-User-Group/" style="color:#ea8428">bay area d3 user group</a><br/>&nbsp;<br/>presentation made with <a href="https://github.com/tmcw/big"><em>big</em></a></div>
+<div><a href="tributary.io"><img src="img/tributary.png" /></a></div>

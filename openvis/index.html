@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.axis text {
+  font: 20px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+path.point,
+line.point {
+  stroke: black;
+  stroke-width: 3px;
+  fill: none;
+}
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+var margin = {top: 40, right: 20, bottom: 220, left: 40, middle: 120};
+
+var orth = {};
+var para = {};
+
+orth.width = 360;
+orth.height = 360;
+
+para.width = 360;
+para.height = 360;
+para.margin = {left: orth.width + margin.middle};
+
+var line = d3.svg.line();
+var circle = d3.svg.symbol().type("circle").size(50);
+
+orth.x = d3.scale.linear()
+    .domain([-3, 3])
+    .range([0, orth.width]);
+
+orth.y = d3.scale.linear()
+    .domain([-3, 3])
+    .range([orth.height, 0]);
+
+para.x = d3.scale.ordinal()
+    .domain(['x', 'y'])
+    .range([para.margin.left, para.margin.left+para.width]);
+
+para.y = d3.scale.linear()
+    .domain([-3, 3])
+    .range([para.height, 0]);
+
+orth.xAxis = d3.svg.axis()
+    .scale(orth.x)
+    .orient("bottom")
+    .ticks(6)
+    .tickSize(6, 0)
+
+orth.yAxis = d3.svg.axis()
+    .scale(orth.y)
+    .orient("left")
+    .ticks(6)
+    .tickSize(6, 0)
+
+para.xAxis = d3.svg.axis()
+    .scale(para.y)
+    .orient("left")
+    .ticks(6)
+    .tickSize(6, 0)
+
+para.yAxis = d3.svg.axis()
+    .scale(para.y)
+    .orient("left")
+    .ticks(6)
+    .tickSize(6, 0)
+
+var svg = d3.select("body").append("svg")
+    .attr("width", 900)
+    .attr("height", 600)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+svg.append("g")
+    .attr("class", "orth x axis")
+    .attr("transform", "translate(0," + (orth.height/2) + ")")
+    .call(orth.xAxis);
+
+svg.append("g")
+    .attr("class", "orth y axis")
+    .attr("transform", "translate(" + (orth.width/2) + ",0)")
+    .call(orth.yAxis);
+
+svg.append("g")
+    .attr("class", "para x axis")
+    .attr("transform", "translate(0," + (orth.height/2) + ")")
+    .call(orth.xAxis)
+    .transition()
+    .duration(5000)
+    .attr("transform", "translate(" + para.x("x") + ",0)")
+    .call(para.xAxis);
+
+svg.append("g")
+    .attr("class", "para y axis")
+    .attr("transform", "translate(" + (orth.width/2) + ",0)")
+    .call(orth.yAxis)
+    .transition()
+    .duration(5000)
+    .attr("transform", "translate(" + para.x("y") + ",0)")
+    .call(para.yAxis);
+
+// hack to avoid y axis jumping
+svg.selectAll(".para.x path")
+  .style("opacity", 0)
+  .transition()
+  .delay(2000)
+  .duration(3000)
+  .style("opacity", 1)
+
+/* Point */
+svg.selectAll("circle")
+  .data([{x: 2, y:1}])
+  .enter().append("circle")
+  .attr("cx", function(d) { return orth.x(d.x); })
+  .attr("cy", function(d) { return orth.y(d.y); })
+  .attr("r", 6)
+
+svg.selectAll("path.point")
+  .data([{x: 2.5, y:1.5}])
+  .enter().append("path")
+  .attr("class", "point")
+  .attr("transform", function(d) { return "translate(" + orth.x(d.x) + "," + orth.y(d.y) + ")"; })
+  .attr("d", circle)
+  .transition()
+  .delay(600)
+  .duration(5000)
+  .attr("transform", function(d) { return "translate(0,0)"; })
+  .attr("d", pointLine);
+
+svg.selectAll("line.point")
+  .data([{x: 2, y:1}])
+  .enter().append("line")
+  .attr("class", "point")
+  .attr("x1", function(d) { return para.x("x"); })
+  .attr("x2", function(d) { return para.x("y"); })
+  .attr("y1", function(d) { return para.y(d.x); })
+  .attr("y2", function(d) { return para.y(d.y); });
+
+function pointCircle(x,y) {
+  return "M" + x + "," + y + "m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0";
+};
+
+function pointLine(d) {
+  return line(["x","y"].map(function(p) { return [para.x(p), para.y(d[p])];}));
+};
+
+</script>

@@ -1,0 +1,214 @@
+<h1>Canvas</h1>
+
+<h3>Generative Sketches</h3>
+
+<p><a href="http://mariuswatz.com/works/abstract01js/index_auto.html"><img src=abstract.png alt="abstract01js" ></img></a></p>
+
+<h3>Julia Set</h3>
+
+<p><a href="http://bl.ocks.org/syntagmatic/3736720"><img src=julia.png alt="Zoomable Julia Set" ></img></a></p>
+
+<h3>Heightmap</h3>
+
+<p><a href="http://bl.ocks.org/mbostock/3289530"><img src=heightmap.png alt="Heightmap" ></img></a></p>
+
+<h3>Parallel Coordinates - Nutrition</h3>
+
+<p><a href="http://bl.ocks.org/2420080"><img src=parallel-coordinates.png alt="Nutrition Parallel Coordinates" ></img></a></p>
+
+<h3>Map Projection Transitions</h3>
+
+<p><a href="http://www.jasondavies.com/maps/transition/"><img src=projections.png alt="Map Projection Transitions" ></img></a></p>
+
+<h3>Basic Usage</h3>
+
+<pre><code>&lt;canvas id="tutorial" width="150" height="150"&gt;&lt;/canvas&gt;
+
+&lt;script&gt;
+  var canvas = document.getElementById('tutorial');
+  var ctx = canvas.getContext('2d');
+
+  // your code here
+&lt;/script&gt;
+</code></pre>
+
+<h3>Full Screen</h3>
+
+<pre><code>&lt;canvas id="tutorial" width="150" height="150"&gt;&lt;/canvas&gt;
+
+&lt;script&gt;
+  var canvas = document.getElementById('tutorial');
+  var ctx = canvas.getContext('2d');
+  canvas.width = document.body.clientWidth;
+  canvas.height = document.body.clientHeight;
+
+  // your code here
+&lt;/script&gt;
+</code></pre>
+
+<h3>Animation</h3>
+
+<p>See this <a href="http://paulirish.com/2011/requestanimationframe-for-smart-animating/">blog post</a> on smart animating with Canvas.</p>
+
+<pre><code>function render() {
+  // your code here
+};
+
+window.requestAnimFrame = window.requestAnimationFrame  || 
+              window.webkitRequestAnimationFrame        || 
+              window.mozRequestAnimationFrame           || 
+              window.oRequestAnimationFrame             || 
+              window.msRequestAnimationFrame            || 
+              function(callback, element) {
+                window.setTimeout(callback, 16);
+              };
+
+(function animloop(){
+  requestAnimFrame(animloop);
+  render();
+})();
+</code></pre>
+
+<p>Here's an <a href="example.html">example</a> of a basic full screen, animated canvas.</p>
+
+<h3>Canvas Scratch Pad</h3>
+
+<p><a href="http://www.kevs3d.co.uk/dev/scratchpad/"><img src=scratchpad.png alt="Canvas Scratch Pad"></img></a></p>
+
+<h4>Clear Canvas</h4>
+
+<pre><code>// clear the canvas
+ctx.fillStyle = "#fff"
+ctx.fillRect(0,0,width,height);
+</code></pre>
+
+<h4>Gradient</h4>
+
+<p>Canvas also has <a href="https://developer.mozilla.org/en-US/docs/HTML/Canvas/Tutorial/Applying_styles_and_colors#Gradients">methods for linear and radial gradients</a>.</p>
+
+<pre><code>// horizontal hue gradient
+for (var i = 0; i &lt; width; i++) {
+  ctx.fillStyle = "hsl(" + i + ",50%,50%)";
+  ctx.fillRect(i,0,1,height);
+}
+</code></pre>
+
+<h4>Double Gradient</h4>
+
+<pre><code>// horizontal hue, vertical saturation gradient
+for (var i = 0; i &lt; 360; i++) {
+  for (var j = 0; j &lt; 400; j++) {
+    ctx.fillStyle = "hsl(" + i + "," +
+      Math.round(100*j/400) + "%,50%)";
+    ctx.fillRect(i,j,1,1);
+  }
+}
+</code></pre>
+
+<h4>Circular Motion</h4>
+
+<p>Use this example in animate mode:</p>
+
+<pre><code>// circular motion
+var time = Date.now() / 1600;
+var x = Math.sin(time);
+var y = Math.cos(time);
+
+// fade canvas
+ctx.fillStyle = "rgba(0,0,0,0.2)"
+ctx.fillRect(0,0,width,height);
+
+// scale and center
+var i = width * ((1+x)/2);
+var j = height * ((1+y)/2);
+
+// draw dot
+ctx.fillStyle = "#fff";
+ctx.fillRect(i,j,2.5,2.5);
+</code></pre>
+
+<h3>Canvas Cheat Sheet</h3>
+
+<p><a href="http://blog.nihilogic.dk/2009/02/html5-canvas-cheat-sheet.html"><img src=canvas-cheat.png alt="Nihilogic's Canvas Cheat Sheet"></img></a></p>
+
+<h3>Coordinate Transformations</h3>
+
+<p>See this <a href="https://developer.mozilla.org/en-US/docs/HTML/Canvas/Tutorial/Transformations">tutorial</a> for examples of translating, rotating and scaling the canvas.</p>
+
+<p><a href="http://bl.ocks.org/syntagmatic/5000831"><img src=transform.png alt="Coordinate Transform Example"></img></a></p>
+
+<h3>Compositing</h3>
+
+<p><a href="https://developer.mozilla.org/en/Canvas_tutorial/Compositing"><img src=compositing.png alt="globalCompositeOperation examples"></img></a></p>
+
+<h3>Resources</h3>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Canvas_element">Canvas Element</a></li>
+<li><a href="https://developer.mozilla.org/en/Canvas_tutorial">MDN Canvas Tutorial</a></li>
+<li><a href="http://www.w3schools.com/html5/html5_ref_canvas.asp">W3Schools Canvas Reference</a></li>
+</ul>
+
+<h3>Galleries</h3>
+
+<ul>
+<li><a href="http://www.kevs3d.co.uk/dev/index.html">Kevin Roast's Demos</a></li>
+<li><a href="http://bost.ocks.org/mike/">Mike Bostock</a></li>
+<li><a href="http://www.canvasdemos.com/">Canvas Demos</a></li>
+<li><a href="http://net.tutsplus.com/articles/web-roundups/21-ridiculously-impressive-html5-canvas-experiments/">21 Canvas Experiments</a></li>
+</ul>
+
+<h3>Books</h3>
+
+<ul>
+<li><a href="http://shop.oreilly.com/product/0636920016045.do">Canvas Pocket Reference</a></li>
+<li><a href="http://shop.oreilly.com/product/0636920013327.do">HTML5 Canvas</a></li>
+</ul>
+
+<h3>SVG</h3>
+
+<ul>
+<li><a href="http://d3js.org/">d3.js</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG on Wikipedia</a></li>
+<li><a href="http://www.w3.org/TR/SVG/">W3C Spec</a></li>
+<li><a href="https://developer.mozilla.org/en/SVG">MDN SVG Tutorial</a></li>
+</ul>
+
+<h3>WebGL</h3>
+
+<ul>
+<li><a href="http://mrdoob.github.com/three.js/">Three.js</a></li>
+<li><a href="http://www.chromeexperiments.com/">Chrome Experiments</a></li>
+<li><a href="http://www.hongkiat.com/blog/webgl-chrome-experiments/">30 WebGL Experiments</a></li>
+</ul>
+
+<h3>Color</h3>
+
+<ul>
+<li><a href="http://www.w3schools.com/cssref/css_colors.asp">CSS Colors</a></li>
+<li><a href="http://sixrevisions.com/css/colors-webdesign/">Guide to CSS Colors</a></li>
+<li><a href="http://kuler.adobe.com/">Adobe Kuler</a></li>
+<li><a href="https://github.com/gka/chroma.js">Chroma.js</a></li>
+</ul>
+
+<p><a href="http://vis4.net/blog/posts/avoid-equidistant-hsv-colors/"><img src=allcolors.png alt="Named and Brewer Colors in Chromas.js" ></img></a></p>
+
+<h3>Compatibity</h3>
+
+<ul>
+<li><a href="http://caniuse.com/canvas">Canvas</a></li>
+<li><a href="http://caniuse.com/svg">SVG</a></li>
+<li><a href="http://caniuse.com/webgl">WebGL</a></li>
+</ul>
+
+<h3>d3.js</h3>
+
+<p><a href="https://github.com/mbostock/d3/wiki/Gallery"><img src=d3js.png alt="d3.js Gallery" ></img></a></p>
+
+<h3>Three.js</h3>
+
+<p><a href="http://mrdoob.github.com/three.js/"><img src=threejs.png alt="Three.js Gallery" ></img></a></p>
+
+<h3>Processing.js</h3>
+
+<p><a href="http://processingjs.org/exhibition/"><img src=processing.png alt="Processing.js" ></img></a></p>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Heatmap</title>
+        
+
+  <script type="text/javascript" src="../lib/jquery.js"></script>
+  <script type="text/javascript" src="../lib/underscore.js"></script>
+  <script type="text/javascript" src="../lib/backbone.js"></script>
+
+  <script type="text/javascript" src="js/heatmap.js"></script>
+  <style type="text/css">
+    body {
+      font-family: monospace;
+      color: #efefef;
+      background: #1a1a1a;
+    }
+    #heatmap {
+      float: left;
+    }
+    #stats {
+      float: left;
+    }
+    #scatter {
+      height: 120px;
+      width: 900px;
+      position: relative;
+      float: left;
+      clear: both;
+    }
+    #scatter .background,
+    #scatter .foreground {
+      position: absolute;
+    }
+    #scatter .background {
+      z-index: 1;
+    }
+    #scatter .foreground {
+      z-index: 2;
+    }
+    ul {
+      list-style: none;
+    }
+  </style>
+  
+</head>
+
+<body>
+<canvas id="heatmap" height=300 width=900></canvas>
+<div id="stats">
+  <ul>
+    <li>
+      <strong>x</strong>:
+      <span id="x">n/a</span>
+    </li>
+    <li>
+      <strong>y</strong>:
+      <span id="y">n/a</span>
+    </li>
+    <li>
+      <strong>i</strong>:
+      <span id="i">n/a</span>
+    </li>
+    <li>
+      <strong>j</strong>:
+      <span id="j">n/a</span>
+    </li>
+    <li>
+      <strong>val</strong>:
+      <span id="val" style="color:#6f9;font-weight:bold;">n/a</span>
+    </li>
+  </ul>
+</div>
+<div id="scatter">
+  <canvas class="background" height=120 width=900></canvas>
+  <canvas class="foreground" height=120 width=900></canvas>
+</div>
+<script>
+  var data = _(_.range(50)).map(function(row) {
+    return _(_.range(150)).map(function(col) {
+      return Math.random();
+    });
+  });
+
+  var b = heatmap('heatmap', data);
+  var c = linegraph('scatter', data);
+
+  b.canvas.onmousemove = function(e) {
+    var pos = indices(6, e);
+    var val = lookup(pos, data);
+    document.getElementById('x').innerHTML = pos.x;
+    document.getElementById('y').innerHTML = pos.y;
+    document.getElementById('i').innerHTML = pos.i;
+    document.getElementById('j').innerHTML = pos.j;
+    document.getElementById('val').innerHTML = val;
+    c.highlight(pos);
+  };
+</script>
+</body>
+</html>

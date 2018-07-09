@@ -1,0 +1,75 @@
+html, body {
+  margin:0;
+  padding:0;
+  height:100%;
+  overflow: auto;
+}
+body {
+  font-size:13px;
+  min-width:960px;
+  font-family: Helvetica, Arial, sans-serif;
+  background:#f8f8f8;
+}
+#canvas div {
+  font: 10px sans-serif;
+}
+#canvas .section {
+  float:left;
+  border:1px solid #ccc;
+  border-left:0;
+  height:28px;
+  cursor:pointer;
+}
+#canvas .bar {
+  margin-bottom:5px;
+  background:#eee;
+  height:30px;
+}
+.bar label {
+  float:left;
+  padding:0px 10px 0 0;
+  border-right:1px solid #ccc;
+  text-align:right;
+  width:160px;
+  color:#555;
+  height:30px;
+}
+.bar .barInner {
+  float:left;
+}
+.bar p {
+  float:left;
+  padding-left:5px;
+  line-height:30px;
+  margin:0;
+}
+h2 {
+  font-family:'impact', ariel, helvetica, sans-serif;
+  font-size:32px;
+  float:left;
+  margin:0;
+  color:#ccc;
+  width:160px;
+  text-align:right;
+  padding-right:10px;
+  cursor:pointer;
+}
+h1 {
+  float:left;
+  text-transform:uppercase;
+  line-height:43px;
+  height:36px;
+  margin:0px;
+  color:#444;
+}
+#countryTotal {
+  float:right;
+  line-height:40px;
+  height:40px;
+  text-align:right;
+  padding-right:20px;
+  margin:0;
+}
+.clearfix {
+  clear:both;
+}

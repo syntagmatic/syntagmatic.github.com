@@ -1,0 +1,89 @@
+body,
+html
+{
+  font: 12px sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: #999;
+}
+
+body
+{
+  width: 800px;
+  margin: 30px auto 0;
+}
+
+#hypercube-canvas
+{
+  display: block;
+  margin: 10px auto 0;
+}
+
+#instructions,
+#hypercube-options
+{
+  border-collapse: collapse;
+  margin: 10px;
+  padding: 0;
+}
+
+#instructions
+{
+  float: left
+}
+
+#instructions td
+{
+  margin: 0;
+  padding: 6px 3px;
+}
+
+#instructions td:first-child
+{
+  text-align: right;
+  border-right: 1px solid #333;
+}
+
+#instructions .key
+{
+  background-color: #222;
+  border: 1px solid #444;
+  padding: 0 2px;
+  font-style: normal;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  -khtml-border-radius: 2px;
+  border-radius: 2px;
+}
+
+#hypercube-options
+{
+   float: right;
+}
+
+#hypercube-options label
+{
+   margin: 0;
+   padding: 0;
+}
+a {
+  color: #fff;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+h3 {
+  margin: 0;
+}
+p {
+  width: 570px;
+}
+text {
+  fill: #ddd;
+}
+.block {
+  width: 600px;
+  float: left;
+}

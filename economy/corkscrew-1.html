@@ -1,0 +1,238 @@
+<!doctype html>
+<style>
+body {
+  font: 13px sans-serif;
+}
+.wrap {
+  width: 600px;
+  margin: 0 auto;
+}
+.rule line,
+.yrule line {
+  stroke-dasharray: 3, 2;
+  stroke: #e4e4e4;
+  shape-rendering: crispEdges;
+}
+
+.rule line.axis,
+.yrule line.axis {
+  stroke: #000;
+}
+
+.line {
+  fill: none;
+  stroke: rgba(0,0,0,0.3);
+  stroke-width: 1px;
+}
+
+circle.data {
+  fill: #666;
+}
+circle.within-year {
+  fill: #368;
+  stroke-width: rgba(255,255,255,0.6);
+  stroke: #fff;
+}
+
+.dot-label text {
+  font-size: 15px;
+  fill: #368;
+  font-weight: bold;
+}
+text.year {
+  font-size: 60px;
+  font-weight: bold;
+  fill: #368;
+}
+text.axis-label {
+  font-size: 14px;
+  font-weight: bold;
+}
+h1 {
+  font-size: 20px;
+}
+</style>
+<div class="wrap">
+<h1>Ground Beef vs Potato Prices - Connected Scatterplot</h1>
+<div id="chart"></div>
+<p>Potato prices have doubled since McDonald's introduced the <a href="http://en.wikipedia.org/wiki/Value_menu">Dollar Menu</a> in 2002. In March 2012, McDonald's <a href="http://www.reuters.com/article/2012/03/08/mcdonalds-idUSL2E8E72GW20120308">removed french fries</a> from the Dollar Menu. Is the double cheeseburger next?</p>
+<p>Some prices in an economy are <a href="http://en.wikipedia.org/wiki/Sticky_(economics)">sticky</a> due to <a href="http://en.wikipedia.org/wiki/Menu_costs">menu costs</a> associated with changing the price, such as updating computer systems, marketing, and consulting on pricing strategies.</p>
+<p>For more on this chart type, see <a href="http://www.thefunctionalart.com/2012/09/in-praise-of-connected-scatter-plots.html">In praise of connected scatter plots</a>.</p>
+</div>
+<script src="lib/underscore.js"></script>
+<script src="lib/d3.v2.js"></script>
+<script src="lib/utils.js"></script>
+<script>
+var series1 = "potatoes",
+    series2 = "ground_beef";
+
+var margin = {top: 10, right: 20, bottom: 30, left: 20},
+    width = 600 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom,
+    xscale = d3.scale.linear().range([0,width]),
+    yscale = d3.scale.linear().range([height,0]);
+
+var data, data2, dates;
+
+var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+d3.csv("data/" + series1 + ".csv", function(data1_raw) {
+  d3.csv("data/" + series2 + ".csv", function(data2_raw) {
+    /*
+    var min_year = d3.min(years),
+        max_year = d3.max(years),
+        min_month = _(months).find(function(m) { return raw[0][m] != undefined; }),
+        max_month = _(months).find(function(m,i) { return raw[raw.length-1][months[i+1]] == " "; });  // following month has no value
+    */
+
+    data1 = utils.date_value(data1_raw);
+    data2 = utils.date_value(data2_raw);
+
+    xscale.domain([0.95*d3.min(_.pluck(data1, 'value')), 1.05*d3.max(_.pluck(data1, 'value'))]);
+    yscale.domain([0.95*d3.min(_.pluck(data2, 'value')), 1.05*d3.max(_.pluck(data2, 'value'))]);
+
+    dates = _.intersection( _.pluck(data1, "date"), _.pluck(data2, "date"));
+
+    var data = _(dates)
+      .map(function(date) {
+        return {
+          date: date,
+          a: _(data1).find(function(d) { return d.date == date}).value,
+          b: _(data2).find(function(d) { return d.date == date}).value
+        }
+      });
+
+    var svg = d3.select("#chart")
+        .data([data])
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var rules = svg.selectAll("g.rule")
+        .data(xscale.ticks(10))
+      .enter().append("svg:g")
+        .attr("class", "rule");
+
+    rules.append("svg:line")
+        .attr("x1", xscale)
+        .attr("x2", xscale)
+        .attr("y1", 0)
+        .attr("y2", height - 1);
+
+    rules.append("svg:text")
+        .attr("x", xscale)
+        .attr("y", height + 3)
+        .attr("dy", ".71em")
+        .attr("text-anchor", "middle")
+        .text(xscale.tickFormat(10));
+
+    var yrules = svg.selectAll("g.yrule")
+        .data(yscale.ticks(10))
+      .enter().append("svg:g")
+        .attr("class", "yrule");
+
+    yrules.append("svg:line")
+        .attr("class", function(d) { return d ? null : "axis"; })
+        .attr("y1", yscale)
+        .attr("y2", yscale)
+        .attr("x1", 0)
+        .attr("x2", width + 1);
+
+    yrules.append("svg:text")
+        .attr("y", yscale)
+        .attr("x", -3)
+        .attr("dy", ".35em")
+        .attr("text-anchor", "end")
+        .text(yscale.tickFormat(10));
+
+    svg.selectAll("path")
+        .data([data[0]])
+        .enter().append("svg:path")
+        .attr("class", "line")
+        .attr("d", d3.svg.line()
+        .x(function(d) { return xscale(d.a); })
+        .y(function(d) { return yscale(d.b); }));
+
+    // x axis label
+    svg.append("text")
+       .attr("x", width+12)
+       .attr("y", height-12)
+       .attr("class", "axis-label")
+       .attr("text-anchor", "end")
+       .text(series1);
+
+    // y axis label
+    svg.append("text")
+       .attr("x", 12)
+       .attr("y", 12)
+       .attr("class", "axis-label")
+       .text(series2);
+
+    var points = svg.selectAll("circle.data")
+        .data(data)
+        .enter().append("circle")
+        .attr("class", "data")
+        .attr("cx", function(d) { return xscale(d.a)})
+        .attr("cy", function(d) { return yscale(d.b)})
+        .attr("r", 0);
+
+    var dot_label = svg.append("g")
+        .attr("class", "dot-label")
+        .attr("text-anchor", "middle")
+        .attr("transform", "translate(" + xscale(data[0].a)+ "," + yscale(data[0].b+20) + ")")
+
+    dot_label.append("svg:text");
+
+    svg.append("svg:text")
+        .attr("class", "year")
+        .attr("x", 376)
+        .attr("y", 478);
+
+    var i = 0;
+    var last = Date.now();
+    d3.timer(function() {
+      var now = Date.now();
+      if (now - last < 150) return;
+      last = now;
+
+      i++;
+      if (dates.length == i) return true;
+      var date = dates[i];
+
+        var d = new Date(date);
+
+        points
+          .classed("within-year", function(d,j) { return i-j < 12 ? true : false});
+
+        points
+          .transition().duration(440) 
+          .ease('sin')
+          .attr("r", function(d,j) { return j < i ? 1 : 0; });
+
+
+        d3.select(points[0][i])
+          .transition().duration(140) 
+          .attr("r", 6);
+
+        dot_label
+           .transition().duration(140) 
+            .ease('sin')
+            .attr("transform", "translate(" + xscale(data[i].a) + "," + (yscale(data[i].b)-20) + ")")
+
+        dot_label.select("text")
+            .text(months[d.getMonth()])
+
+        svg.select("text.year").text(d.getFullYear());
+
+        svg.selectAll("path.line")
+            .data([data.slice(0,i+1)])
+            .transition()
+            .attr("d", d3.svg.line()
+            .x(function(d) { return xscale(d.a); })
+            .y(function(d) { return yscale(d.b); }));
+    });
+  });
+});
+</script>

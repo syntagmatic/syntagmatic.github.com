@@ -1,0 +1,17 @@
+Data and Prototypes for Al Jazeera Economy Cube
+
+Credits: Kai Chang, Ben Piven, Sam Bollier
+
+To view these visualizations, you will need to put this directory on a web server. If you're on OS X or Linux, this command will run a simple server in the current directory:
+
+  python -m SimpleHTTPServer 8000
+
+Travel to http://0.0.0.0:8000/ in your web browser to see the list of visualization prototypes.
+
+The visualizations use D3.js, Underscore.js and other open source libraries found in the /lib folder.
+
+D3.js - Data Driven Documents
+http://d3js.org/
+
+Underscore.js - A utility belt for javascript
+http://underscorejs.org/

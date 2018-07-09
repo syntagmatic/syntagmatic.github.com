@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" /> 
+    <title>Hypercube Projections</title>
+    <link rel="stylesheet" type="text/css" href="d3.parcoords.css">
+    <link rel="stylesheet" type="text/css" href="hypercube.css" />
+  </head>
+  <body>
+    <h3>Hypercube Edges in Orthogonal Projection</h3>
+    <table id="instructions">
+      </p>You've stumbled on a rotating <a href="http://en.wikipedia.org/wiki/Tesseract">tesseract</a>!<br/>
+          Color and opacity encode two extra spatial dimensions.</p>
+      <tr>
+        <td>drag left/right</td><td><strong>xz</strong> rotation</td>
+      </tr>
+      <tr>
+        <td>drag up/down</td><td><strong>yz</strong> rotation</td>
+      </tr>
+      <tr>
+        <td><span class="key">shift</span>+drag left/right</td><td><strong>xw</strong> rotation</td>
+      </tr>
+      <tr>
+        <td><span class="key">shift</span>+drag up/down</td><td><strong>yw</strong> rotation</td>
+      </tr>
+      <tr>
+        <td><span class="key">alt</span>+<span class="key">shift</span>+drag left/right</td><td><strong>xy</strong> rotation</td>
+      </tr>
+      <tr>
+        <td><span class="key">alt</span>+<span class="key">shift</span>+drag up/down</td><td><strong>zw</strong> rotation</td>
+      </tr>
+    </table>
+    <form id="hypercube-options">
+      <label><input type="checkbox" name="indices" />Indices</label><br/>
+      <label><input type="checkbox" name="edges" />Edges</label><br/>
+      <label><input type="checkbox" name="perspective" />Perspective</label><br/>
+      <label><input type="checkbox" name="rotate_xz" />Rotate xz</label><br/>
+      <label><input type="checkbox" name="rotate_yz" />Rotate yz</label><br/>
+      <label><input type="checkbox" name="rotate_xw" />Rotate xw</label><br/>
+      <label><input type="checkbox" name="rotate_yw" />Rotate yw</label><br/>
+      <label><input type="checkbox" name="rotate_xy" />Rotate xy</label><br/>
+      <label><input type="checkbox" name="rotate_zw" />Rotate zw</label><br/>
+    </form>
+
+    <canvas id="hypercube-canvas" width=400 height=400>Unfortunately, your browser does not support coolness.</canvas>
+    <h3>Hypercube Vertices in Parallel Coordinates</h3>
+    <p>This is a <a href="http://en.wikipedia.org/wiki/Parallel_coordinates">four dimensional visualization</a> of the vertices.<br/>
+    Learn about <a href="http://en.wikipedia.org/wiki/Duality_(projective_geometry)">point-line duality</a> and watch this <a href="http://www.youtube.com/watch?v=NYK0GBQVngs&feature=share&list=EC55C7C83781CF4316">amazing lecture</a> on the history of projective geometry.</p>
+    <div id="parcoords" class="parcoords" style="width:960px;height:280px;margin: 20px -80px;"></div>
+    <p>
+    Adapted from milosz's <a href="http://hypercube.milosz.ca/">hypercube</a><br/>
+    <a href=http://d3js.org/">D3</a> based <a href="http://syntagmatic.github.com/parallel-coordinates/">parallel coordinates</a> JavaScript library - <a href="https://github.com/syntagmatic/parallel-coordinates#resources">more reading</a><br/>
+    </p>
+    <p>
+    I hope this tickled your brain.<br/>
+    </p>
+    <script src="/lib/d3.v2.js"></script>
+    <script src="d3.parcoords.js"></script>
+    <script src="hypercube.js"></script>
+    <script>
+      // color scale
+      function color(d) {
+        var z = 0.5 + 0.3 * d.z;
+        var w = 151 + Math.floor(40*(d.w));
+        return "rgba(255," + w + ",0," + z + ")";
+      };
+
+      // parallel coordinates
+      var parcoords = d3.parcoords()("#parcoords")
+        .color(color)
+        .alpha(0.8)
+        .composite("lighter");
+
+      // hypercube
+      var cube = hypercube();
+      cube.init()
+
+      // scale parallel coordinates, min/max length from center to opposite vertices 
+      parcoords
+        .data([
+          { x: -2, y: -2, z: -2, w: -2},     // minimum for each dimension
+          { x: 2, y: 2, z: 2, w: 2}          // maximum for each dimension
+        ])
+        .dimensions(["x", "y", "z", "w"])
+        .autoscale()
+        .reorderable();
+      
+      // add hypercube vertices and render the data
+      parcoords
+        .data(cube.vertices)
+        .render()
+
+      // change some display properties
+      parcoords.ctx.foreground.lineWidth = 2.4;
+      parcoords.svg.selectAll(".axis g text").attr("display", "none");
+      parcoords.svg.selectAll(".axis line").attr("display", "none");
+
+      // animation and chart linking
+      function anim(t) {
+        cube.draw();
+        parcoords.data(cube.vertices).render();
+
+        var dimensions = parcoords.dimensions(); 
+        var first_dimension = dimensions[0]
+        var last_dimension = dimensions[dimensions.length-1]
+        var yscale_first = parcoords.yscale[first_dimension];
+        var yscale_last = parcoords.yscale[last_dimension];
+        var x_first = parcoords.xscale(first_dimension);
+        var x_last = parcoords.xscale(last_dimension);
+        parcoords.ctx.foreground.fillStyle = "#fff";
+        parcoords.ctx.foreground.font = "bold 12px sans-serif";
+        parcoords.ctx.foreground.textBaseline = 'middle';
+        parcoords.ctx.foreground.textAlign = 'right';
+        cube.vertices.forEach(function(d,i) {
+            parcoords.ctx.foreground.fillText(i,x_first-4,yscale_first(d[first_dimension]));
+        });
+        parcoords.ctx.foreground.textAlign = 'left';
+        cube.vertices.forEach(function(d,i) {
+            parcoords.ctx.foreground.fillText(i,x_last+4,yscale_last(d[last_dimension]));
+        });
+      }
+      d3.timer(anim);
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>LEI Fullscreen Datagrid</title>
+  <link rel="stylesheet" href="../lib/slick.grid.css" type="text/css"/>
+  <link rel="stylesheet" href="examples.css" type="text/css"/>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: White;
+      overflow: auto;
+    }
+
+    body {
+      font: 11px Helvetica, Arial, sans-serif;
+    }
+
+    #container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    #description {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      width: 25em;
+      background: beige;
+      border: solid 1px gray;
+      z-index: 1000;
+    }
+
+    #description h2 {
+      padding-left: 0.5em;
+    }
+    .bar {
+      display:inline-block;
+      background: #89a;
+      margin: 0px 6px 0;
+      height: 10px;
+    }
+    .count {
+      color: #678;
+      margin-right: 6px;
+    }
+    a.button {
+      background: #89a;
+      color: #fff;
+      margin: 3px;
+      border-radius: 4px;
+      text-decoration: none;
+      display: inline-block;
+      padding: 2px 4px;
+      font-weight: bold;
+    }
+    a:hover.button {
+      background: #678;
+    }
+  </style>
+</head>
+<body>
+<div id="container"></div>
+<div id="description">
+  <h2>Demonstrates:</h2>
+  <ul>
+    <li>Grouping by Column Value</li>
+    <li>Sorting by Count</li>
+    <li>Toggling group with buttons</li>
+  </ul>
+  <h2>Group By:</h2>
+  <ul>
+    <li><a class="button" href="#" onclick="groupByName()">Registered Name</a></li>
+    <li><a class="button" href="#" onclick="groupByAddress1()">Address Line 1</a></li>
+    <li><a class="button" href="#" onclick="groupByCity()">City</a></li>
+    <li><a class="button" href="#" onclick="groupByRegion()">Region</a></li>
+    <li><a class="button" href="#" onclick="groupByCountryCode()">Country Code</a></li>
+    <li><a class="button" href="#" onclick="groupByLEIStatus()">LEI Status</a></li>
+    <li><a class="button" href="#" onclick="groupByLOU()">LOU</a></li>
+  </ul>
+</div>
+
+<script src="../lib/d3.v3.min.js"></script>
+<script src="../lib/underscore.js"></script>
+<script src="../lib/jquery-2.0.3.min.js"></script>
+<script src="../lib/jquery.event.drag-2.2.js"></script>
+
+<script src="../lib/slick.core.js"></script>
+<script src="../lib/slick.grid.js"></script>
+<script src="../lib/slick.cellrangedecorator.js"></script>
+<script src="../lib/slick.cellrangeselector.js"></script>
+<script src="../lib/slick.cellselectionmodel.js"></script>
+<script src="../lib/slick.groupitemmetadataprovider.js"></script>
+<script src="../lib/slick.dataview.js"></script>
+<script>
+var grid,
+    groupItemMetadataProvider = new Slick.Data.GroupItemMetadataProvider(),
+    dataView = new Slick.Data.DataView({
+      groupItemMetadataProvider: groupItemMetadataProvider,
+      inlineFilters: true
+    }),
+    data = [],
+    columns = [],
+    regroup,
+    options = {
+      enableCellNavigation: false,
+      enableColumnReorder: false
+    };
+
+function groupByCountryCode() {
+  dataView.setGrouping({
+    getter: "RegisteredCountryCode",
+    formatter: function(g) {
+      return "<span class='bar' style='width:" + (g.count/15) + "px;'></span><span class='count'>" + g.count + "</span><strong>" + g.value + "</strong>";
+    },
+    comparer: function(a,b) {
+      return b.count - a.count;
+    },
+    collapsed: true
+  });
+}
+
+function groupByAddress1() {
+  dataView.setGrouping({
+    getter: "RegisteredAddress1",
+    formatter: function(g) {
+      return "<span class='bar' style='width:" + (g.count/15) + "px;'></span><span class='count'>" + g.count + "</span><strong>" + g.value + "</strong>";
+    },
+    comparer: function(a,b) {
+      return b.count - a.count;
+    },
+    collapsed: true
+  });
+}
+
+function groupByName() {
+  dataView.setGrouping({
+    getter: "RegisteredName",
+    formatter: function(g) {
+      return "<span class='bar' style='width:" + (g.count/15) + "px;'></span><span class='count'>" + g.count + "</span><strong>" + g.value + "</strong>";
+    },
+    comparer: function(a,b) {
+      return b.count - a.count;
+    },
+    collapsed: true
+  });
+}
+
+function groupByCity() {
+  dataView.setGrouping({
+    getter: "RegisteredCity",
+    formatter: function(g) {
+      return "<span class='bar' style='width:" + (g.count/15) + "px;'></span><span class='count'>" + g.count + "</span><strong>" + g.value + "</strong>";
+    },
+    comparer: function(a,b) {
+      return b.count - a.count;
+    },
+    collapsed: true
+  });
+}
+
+function groupByRegion() {
+  dataView.setGrouping({
+    getter: "RegisteredRegion",
+    formatter: function(g) {
+      return "<span class='bar' style='width:" + (g.count/15) + "px;'></span><span class='count'>" + g.count + "</span><strong>" + g.value + "</strong>";
+    },
+    comparer: function(a,b) {
+      return b.count - a.count;
+    },
+    collapsed: true
+  });
+}
+
+function groupByLEIStatus() {
+  dataView.setGrouping({
+    getter: "LEIStatusCode",
+    formatter: function(g) {
+      return "<span class='bar' style='width:" + (g.count/15) + "px;'></span><span class='count'>" + g.count + "</span><strong>" + g.value + "</strong>";
+    },
+    comparer: function(a,b) {
+      return b.count - a.count;
+    },
+    collapsed: true
+  });
+}
+
+function groupByLOU() {
+  dataView.setGrouping({
+    getter: "LOUID",
+    formatter: function(g) {
+      return "<span class='bar' style='width:" + (g.count/15) + "px;'></span><span class='count'>" + g.count + "</span><strong>" + g.value + "</strong>";
+    },
+    comparer: function(a,b) {
+      return b.count - a.count;
+    },
+    collapsed: true
+  });
+}
+
+d3.csv("pleiPartial_20130819.csv", function(data) { data = data; 
+  data.forEach(function(d,i) { data[i].id = i; });
+
+  var keys = d3.keys(data[0]);
+  _(keys).each(function(key) {
+    columns.push({
+      id: key,
+      name: key,
+      field: key,
+      width: 120
+    });
+  });
+
+  dataView.setItems(data);
+
+  groupByAddress1();
+
+  grid = new Slick.Grid("#container", dataView, columns, options);
+
+  // register the group item metadata provider to add expand/collapse group handlers
+  grid.registerPlugin(groupItemMetadataProvider);
+  grid.setSelectionModel(new Slick.CellSelectionModel());
+
+
+  // wire up model events to drive the grid
+  dataView.onRowCountChanged.subscribe(function (e, args) {
+    grid.updateRowCount();
+    grid.render();
+  });
+
+  dataView.onRowsChanged.subscribe(function (e, args) {
+    grid.invalidateRows(args.rows);
+    grid.render();
+  });
+});
+</script>
+</body>
+</html>

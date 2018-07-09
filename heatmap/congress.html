@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>101st Congress Votes</title>
+  <script type="text/javascript" src="../lib/jquery.js"></script>
+  <script type="text/javascript" src="../lib/underscore.js"></script>
+  <script type="text/javascript" src="../lib/backbone.js"></script>
+  <script type="text/javascript" src="js/heatmap.js"></script>
+  <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<div id="topbar">
+  <div id="options">
+    <label for="year">Year:</label>
+    <select id="yearSelect">
+      <option value="1990">1990</option>
+      <option value="1991">1991</option>
+      <option value="1992">1992</option>
+      <option value="1993">1993</option>
+      <option value="1994">1994</option>
+      <option value="1995">1995</option>
+      <option value="1996">1996</option>
+      <option value="1997">1997</option>
+      <option value="1998">1998</option>
+      <option value="1999">1999</option>
+      <option value="2000">2000</option>
+      <option value="2001">2001</option>
+      <option value="2002">2002</option>
+      <option value="2003">2003</option>
+      <option value="2004">2004</option>
+      <option value="2005">2005</option>
+      <option value="2006">2006</option>
+      <option value="2007">2007</option>
+      <option value="2008">2008</option>
+      <option value="2009">2009</option>
+      <option value="2010">2010</option>
+      <option value="2011">2011</option>
+      <option value="2012">2012</option>
+    </select>
+    <label for="resolution">Resolution:</label>
+    <select id="resolution">
+      <option value="1" selected="selected">1</option>
+      <option value="2">2</option>
+      <option value="4">4</option>
+      <option value="8">8</option>
+      <option value="12">12</option>
+      <option value="20">20</option>
+    </select>
+    <label for="sort-order">Sort Order:</label>
+    <select id="sort-order">
+      <option value="random" selected="selected">Random</option>
+      <option value="totals-leg">Totals by Legislator</option>
+      <option value="totals-leg-sort">Totals by Legislator, Sorted</option>
+      <option value="totals-reverse-leg-sort">Totals (Reversed) by Legislator, Sorted</option>
+      <!--
+      <option value="totals-roll">Totals by Roll Call</option>
+      <option value="totals-roll-sort">Totals by Roll Call, Sorted</option>
+      -->
+    </select>
+  </div>
+  <h1>Congress Votes <span class="date"></span></h1>
+  <p>
+  This is a visualization of the <a id="roll-link" href="http://clerk.house.gov/evs/1990/index.asp">roll call votes of <span class="date">1990</span> Congress</a>.<br/>
+    Each row is a legislator. Each column is a roll call vote. Click to sort by column. A description for each roll will be in the next version.
+  </p>
+  <p>
+    Key:
+    <strong>
+      <span class="color1">Yea</span> |
+      <span class="color0">Nay</span> |
+      <span class="color4">Present</span> |
+      <span class="color3">Not Voting</span> |
+      <span class="color5">Not in Congress at the time</a>
+    </strong>
+  </p>
+</div>
+<div id="stats">
+  <ul>
+    <li>
+      <strong>Legislator</strong>:
+      <span id="legislator">n/a</span>
+    </li>
+    <li>
+      <strong>Vote</strong>:
+      <span id="val" style="font-weight:bold">n/a</span>
+    </li>
+    <li>
+      <strong>Roll</strong>:
+      <span id="j">n/a</span>
+    </li>
+    <li>
+      <strong>Question</strong>:
+      <span id="question">n/a</span>
+    </li>
+    <li>
+      <strong>Legislation Number</strong>:<br/>
+      <span id="legis-num">n/a</span>
+    </li>
+    <li>
+      <strong>Description</strong>:<br/>
+      <span id="vote-desc">n/a</span>
+    </li>
+    <li>
+      <strong>Date</strong>:
+      <span id="action-date">n/a</span>
+    </li>
+    <li>
+      <strong>Result</strong>:
+      <span id="vote-result" style="font-weight:bold">n/a</span>
+    </li>
+  </ul>
+</div>
+<h2 id="loading">Loading <span class="date"></span>  US House Votes...</h2>
+<div class="wrapper">
+	<div id="heatmap-wrap">
+		<canvas id="heatmap" height=300 width=900></canvas>
+		<canvas id="hover" height=300 width=900></canvas>
+	</div>
+	<div id="party-wrap">
+		<canvas id="party" height=300 width=8></canvas>
+	</div>
+	<div id="results-wrap">
+		<canvas id="results" height=8 width=900></canvas>
+	</div>
+</div>
+<script type="text/javascript" src="js/init.js"></script>
+<script>
+var resolution = parseInt($('#resolution').val());
+var val = parseInt($('#yearSelect').val());
+var heat = {},
+    meta = {},
+    data = [],
+    options = {};
+
+options.size = _.extend({
+  dotsize: function() {return resolution},
+  gutsize: function() {
+		if (resolution < 4) {
+			return 0.00001;
+		} else if (resolution < 12) {
+			return 1;
+		} else {
+			return 2;
+		}},
+	totsize: function() {return options.size.dotsize()+options.size.gutsize()} 
+}, options);
+
+options.colors = {
+  null: '#333',
+  undefined: '#333',
+  "Failed": '#e30',
+  0: '#A54326',
+  "Passed": '#090',
+  "Agreed to": '#090',
+  1: '#68AD45',
+  3: '#666',
+  4: '#A6AD79'
+};
+
+options.hoverColors = {
+  null: '#333',
+  undefined: '#333',
+  "Failed": '#e30',
+  0: '#DD3700',
+  "Passed": '#090',
+  "Agreed to": '#090',
+  1: '#2CC934',
+  3: '#777',
+  4: '#A6AD79'
+};
+
+options.vote_key = {
+  0: 'Nay',
+  1: 'Yea',
+  3: 'Not Voting',
+  4: 'Present'
+};
+ 
+if (val == 2011) {
+  _.extend({
+    colors:{
+      "Boehner":"#0b0",
+      "Pelosi":"#e30"
+    },
+    vote_key:{
+      "Boehner":"Boehner",
+      "Pelosi":"Pelosi"
+    }
+  }, options);
+}
+
+heat = initHeat(options);
+
+function parties(data, meta) {
+  var color = {
+    "R": "#ef8a62",
+    "D": "#67a9cf",
+    "I": "#f7f7f7"
+  }
+  var party = _(data).chain()
+                     .pluck('legislator')
+                     .map(function(leg) {
+                       return meta[leg]['party'] 
+                     })
+                     .value();
+  var canvas = document.getElementById('party');
+  var ctx = canvas.getContext('2d');
+  _(party).each(function(d,i) {
+    ctx.fillStyle = color[d];
+		ctx.fillRect(0,options.size.totsize()*i,resolution < 4 ? options.size.dotsize()*4 : options.size.dotsize(),options.size.dotsize());
+  });
+};
+
+function results(data) {
+		var results = _(data).pluck('vote-result');
+		var canvas = document.getElementById('results');
+		var ctx = canvas.getContext('2d');
+		_(results).each(function(d,i) {
+			ctx.fillStyle = options.colors[d];
+			ctx.fillRect(options.size.totsize()*i,0,options.size.dotsize(),options.size.dotsize()*4);
+		});
+};
+
+function render() {
+  $('.date').each(function() {
+    $(this).text(val);
+  });
+
+  $('#roll-link').attr('href', "http://clerk.house.gov/evs/" + val + "/index.asp");
+
+  $.getJSON('data/congress-' + val + '.json', function(raw_data) {
+    var legislators = [],
+        votes = [];
+
+    _(raw_data).each(function(v,k) {
+      legislators.push(k);
+      votes.push(v);
+    });
+
+    // reorganize data into [{}, {}, {}]
+    data = _(raw_data).map(function(v,k) {
+      return {
+        legislator: k,
+        votes: v
+      }
+    });
+
+    // legislator party widget
+    $.getJSON('data/' + val + '-legislators-detailed', function(raw_data) {
+      meta.legislator = raw_data;
+      parties(data, meta.legislator);
+    });
+
+    // results widget
+    $.getJSON('data/' + val + '-legislation', function(raw_data) {
+		  meta.roll = raw_data;
+      results(meta.roll);
+    });
+
+    heat.data(votes);
+    heat.draw();
+
+    heat.move = function(e, leg, col, vote) {
+      $('#stats').show();
+      $('#legislator').html(legislators[leg]);
+      $('#j').html(col+1);
+      $('#val').html(options.vote_key[vote])
+      $('#val').css({
+        'color': options.colors[vote] 
+      });
+      $('#question').html(meta['roll'][col+1]['question']);
+      $('#legis-num').html(meta['roll'][col+1]['legis-num']);
+      $('#vote-desc').html(meta['roll'][col+1]['vote-desc']);
+      $('#action-date').html(meta['roll'][col+1]['action-date']);
+      $('#vote-result').html(meta['roll'][col+1]['vote-result']);
+      $('#vote-result').css({
+        'color': options.colors[ meta['roll'][col+1]['vote-result'] ]
+      });
+    };
+
+		heat.out = function(e) {
+			$('#stats').hide();
+		};
+
+    heat.click = function(leg, col, vote) {
+      $(options.mapEl).fadeOut('slow');
+
+      // alphabetical sort
+      //var sorted_data = _(data).sortBy(function(d,v) { return d['legislator'] });
+
+      // sort data by that column
+      var sorted_data = _(data).sortBy(function(d,v) {
+        var vote = d['votes'][col]
+        if (_.isNull(vote)) {
+          return -1;
+        } else {
+          return vote;
+        }
+      });
+
+      legislators = _(sorted_data).pluck('legislator');
+      votes = _(sorted_data).pluck('votes');
+      data = sorted_data;
+      heat.data(votes);
+      heat.draw();
+			results(meta.roll); // xxx
+      parties(data, meta.legislator);
+      $(options.mapEl).fadeIn();
+    };
+  });
+};
+
+render();
+
+$('#yearSelect').change(function() {
+  val = $(this).val();
+  $('#heatmap-wrap').hide();
+  $('#loading').show();
+  $('#sort-order').val('random');
+  render();  
+});
+
+$('#resolution').change(function() {
+  resolution = parseInt($('#resolution').val());
+  $(options.mapEl).hide();
+	heat.options({"size": options.size});
+  heat.draw();
+	parties(data, meta.legislator);
+});  
+
+$('#sort-order').change(function() {
+  var sorted = sort_order[$(this).val()](data);
+  heat.data( _(sorted).pluck('votes') );
+  heat.draw();
+  heat.move = function() {};
+  heat.click = function() {};
+  $('#stats').hide();
+});
+
+var sort_order = {
+  'random' : function(v) { return v },
+  'totals-leg' : function(v) {
+    return _(v).map(function(d) {
+                 return {
+                   legislator: d['legislator'],
+                   votes: d['votes'].sort()
+                 };
+               })
+  },
+  'totals-leg-sort' : function(v) {
+    return _(v).chain()
+               .map(function(d) {
+                 return {
+                   legislator: d['legislator'],
+                   votes: d['votes'].sort()
+                 };
+               })
+               .sortBy(function(d) {
+                 return _.filter(d['votes'], function(v) { return v == 0 }).length
+               })
+               .value();
+  },
+  'totals-reverse-leg-sort' : function(v) {
+    return _(v).chain()
+               .map(function(d) {
+                 return {
+                   legislator: d['legislator'],
+                   votes: _.without(d['votes'], null, 3, 4).sort().reverse()
+                 }
+               })
+               .sortBy(function(d) {
+                 return _.filter(d['votes'], function(v) { return v == 1 }).length
+               })
+               .value();
+  }
+
+};
+
+</script>
+</body>
+</html>

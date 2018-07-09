@@ -1,0 +1,26 @@
+<!doctype html>
+<link rel="stylesheet" type="text/css" href="style.css"></link>
+<div id="wrap">
+  <h1>Unemployment</h1>
+  <div id="chart-steps0"></div>
+  <div id="chart0"></div>
+  <div id="sidebar-notes"></div>
+  <h2>Notes</h2>
+  <p>
+  Unemployed: U-3 Total unemployed, as a percent of the civilian labor force (official unemployment rate)
+  <br/>
+  Discouraged: U-5 Total unemployed, plus discouraged workers, plus all other persons marginally attached to the labor force, as a percent of the civilian labor force plus all persons marginally attached to the labor force
+  <br/>
+    Part-time: U-6 Total unemployed, plus all persons marginally attached to the labor force, plus total employed part time for economic reasons, as a percent of the civilian labor force plus all persons marginally attached to the labor force
+  </p>
+  <p>Source: <a href="http://data.bls.gov/timeseries/LNS14000000">Bureau of Labor Statistics</a></p>
+</div>
+<script src="lib/underscore.js"></script>
+<script src="lib/underscore.string.js"></script>
+<script src="lib/d3.v2.js"></script>
+<script src="lib/queue.js"></script>
+<script src="lib/utils.js"></script>
+<script src="js/unemployment-final.js"></script>
+<script>
+unemploymentFinal();
+</script>

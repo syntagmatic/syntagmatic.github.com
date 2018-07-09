@@ -1,0 +1,161 @@
+<!doctype html>
+<style>
+body {
+  font: 10px sans-serif;
+}
+
+#wrap {
+  margin: 0 auto;
+}
+
+.legend {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.date-step {
+  border-radius: 4px;
+  padding: 4px 6px;
+  background: #eee;
+  color: #000;
+  text-decoration: none;
+}
+
+.date-step:hover {
+  background: #444;
+  color: #fff;
+}
+
+.axis {
+  shape-rendering: crispEdges;
+}
+
+.axis line,
+.axis path {
+  fill :none;
+  stroke-width: 1px;
+  stroke: #000;
+}
+
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+.exports {
+  fill: rgba(240,0,0,0.5);
+}
+.imports {
+  fill: rgba(0,50,220,0.5);
+}
+
+circle.line {
+  fill: #fff;
+}
+
+#chart .multiple {
+  width: 260px;
+  float: left;
+}
+</style>
+<div id="wrap">
+  <h1>Trade</h1>
+  <p>Logarithmic scale, 1985-2012. Red: Exports, Blue: Imports, Maroon: Both. It's an area chart, so the maroon is where imports/exports overlap.</p>
+  <p>Source: <a href="http://www.census.gov/foreign-trade/">Census Foreign Trade</a></p>
+  <div id="chart"></div>
+</div>
+<script src="lib/underscore.js"></script>
+<script src="lib/underscore.string.js"></script>
+<script src="lib/underscore.nest.js"></script>
+<script src="lib/underscore.math.js"></script>
+<script src="lib/d3.v2.js"></script>
+<script src="lib/queue.js"></script>
+<script src="lib/utils.js"></script>
+<script>
+var margin = {top: 10, right: 10, bottom: 10, left: 10},
+    width = 250 - margin.left - margin.right,
+    height = 100 - margin.top - margin.bottom,
+    xscale = d3.time.scale().range([0,width]),
+    import_scale = d3.scale.log().range([height,0]);
+    export_scale = d3.scale.log().range([height,0]);
+
+var minDate = (new Date(1985, 0)).getTime();
+var maxDate = (new Date(2012, 8)).getTime();
+
+xscale.domain([minDate, maxDate]);
+
+var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+var MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+d3.csv('data/census-trade.csv', function(raw) {
+  // clean up data
+  var data = _.nest(raw, ['CTYNAME', 'year']).children;
+
+  _(data).each(function(country) {
+    country.series = _(country.children).chain()
+      .map(function(row) {
+        var year = row.name;
+        return _(MONTHS).map(function(month, i) {
+          return {
+            date: (new Date(year, i)).getTime(),
+            imports: parseFloat(row.children[0]["I" + month]) + 0.001,
+            exports: parseFloat(row.children[0]["E" + month]) + 0.001
+          }
+        });
+      })
+      .flatten()
+      .value();
+  });
+
+  // sort data by total imports
+  data = _(data).sortBy(function(d) { return -_(d.series).chain().pluck("imports").sum().value(); });
+
+  // get extents
+  var flattened = _(data).chain().pluck("series").flatten().value();
+  var max_imports = _(flattened).chain().pluck("imports").max().value();
+  var max_exports = _(flattened).chain().pluck("exports").max().value();
+  var max = d3.max([max_imports, max_exports]);
+  
+  import_scale.domain([0.001, max]);
+  export_scale.domain([0.001, max]);
+
+  var multiples = d3.select("#chart")
+    .selectAll("div")
+    .data(data)
+    .enter().append("div")
+      .attr("class", "multiple");
+
+  multiples
+    .append("h3")
+    .text(function(d) {
+      return d.name;
+    });
+
+  var svg = multiples
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+  svg
+    .selectAll("path.imports")
+      .data(function(d) { return [d.series]})
+      .enter().append("path")
+      .attr("class", "imports")
+      .attr("d", d3.svg.area()
+        .y0(height)
+        .x(function(d) { return xscale(d.date); })
+        .y1(function(d) { return import_scale(d.imports); }));
+
+  svg
+    .selectAll("path.exports")
+      .data(function(d) { return [d.series]})
+      .enter().append("path")
+      .attr("class", "exports")
+      .attr("d", d3.svg.area()
+        .y0(height)
+        .x(function(d) { return xscale(d.date); })
+        .y1(function(d) { return export_scale(d.exports); }));
+});
+</script>
+

@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+
+    <head>
+        <title>Marvel Universe Social Graph</title>
+        <style type="text/css">
+            body {
+                margin: 20px 0 60px;
+                background-color: #393939;
+                color: #ddd;
+                text-align: center;
+                font-family: Helvetica, Arial, sans-serif;
+                line-height: 1.35em;
+            }
+            a, a:visited {
+                color: #FFC730;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+            ul, li {
+                list-style: none;
+            }
+            h1 {
+                font-family: Impact, Helvetica, Arial, sans-serif;
+                font-weight: normal;
+                font-size: 56px;
+                color: #FFC730;
+                margin-bottom: 0px;
+            }
+            h3 {
+                font-family: Impact, Helvetica, Arial, sans-serif;
+                font-weight: normal;
+                font-size: 36px;
+                color: #FFC730;
+                margin-bottom: 0px;
+            }
+            .container {
+                margin: 0 auto;
+                width: 760px;
+            }
+            img {
+              margin: 18px 0;
+              -moz-box-shadow: 0px 0px 15px #000;
+              -webkit-box-shadow: 0px 0px 15px #000;
+              box-shadow: 0px 0px 15px #000;
+            }
+        </style>
+        <!-- End -->
+    </head>
+
+    <body>
+      <div class="container">
+        <h3>Marvel Universe Social Graph</h3>
+        <a href="data1/" title="Full color dataset"><img src="screenshots/dataset1.png"/></a>
+        <a href="http://kaisalmon.posterous.com/marvel-universe-social-graph" title="Notes and more screenshots"><img src="screenshots/invisiblewoman-preview.png"/></a>
+        <a href="data2/" title="Alternate dataset view"><img src="screenshots/dataset2.png"/></a>
+        <p>Created by Kai Chang, Tom Turner, and Jefferson Braswell</p>
+        <h3>Production Notes</h3>
+        <a href="screenshots/gephi-full.png"><img src="screenshots/gephi.png"/></a>
+        <div style="text-align:left;margin-left:60px;">
+          <p>These graphs were produced for the Data Insight 2011 competition at Adobe in San Francisco using data from Infochimps. The data was transformed to optimize importing into Gephi, a powerful graph visualization packages for Linux, OS X and Windows. You can find both the source and transformed data at the bottom of this page, as well as the Gephi source files used to generate the images.</p>
+          <p>One dataset (Comic and Hero) connects Marvel characters with comic issues they appeared in. This dataset was ideal for accurate community detection. A second dataset (Hero Social Network)  contained only connections between characters, weighted by number of common appearances in comics.</p>
+          <p>In Gephi, we made use of the Force Atlas 2 layout algorithm to cluster related nodes. Node sizes are based on degree of connection. Colors either corresponded to node type (comic or hero), or community detected using the modularity class statistic. Ego graphs were created using Gephi's filters.</p>
+        </div>
+        <h3>Datasets and Gephi Files</h3>
+        <div style="text-align:left;margin-left:60px;">
+          <p>To build on the visualizations above, you'll need <a href="http://gephi.org/">Gephi</a> and your choice of the following files:</p>
+          <ul>
+            <li><a href="data/comic-hero-network.gephi">Comic and Hero Network</a> (gephi)</li>
+            <li><a href="data/hero-social-network.gephi">Marvel Social Network</a> (gephi)</li>
+            <li><a href="data/comic-hero-network.gdf">Comic and Hero Network Data</a> (gdf guess)</li>
+            <li><a href="data/hero-network.csv">Hero Social Network Data</a> (csv)</li>
+            <li><a href="data/source.csv">Cleaned source file</a> (csv) from Infochimp's <a href="http://www.infochimps.com/datasets/marvel-universe-social-graph">Marvel Universe Social Graph Data</a> (tsv)</li>
+          </ul>
+        </div>
+        <p><a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by/3.0/88x31.png" /></a><br />
+        <small>All datasets, images and techniques released under the<br/><a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a></small></p>
+      </div>
+    </body>
+
+</html>
