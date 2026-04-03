@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grateful Dead Show Finder</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+
+  header {
+    text-align: center;
+    padding: 2rem 1rem 1rem;
+    background: linear-gradient(135deg, #16213e, #0f3460);
+    border-bottom: 2px solid #e94560;
+  }
+
+  header h1 {
+    font-size: 2rem;
+    color: #e94560;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+
+  header p {
+    color: #8899aa;
+    font-size: 0.95rem;
+  }
+
+  .queries-container {
+    max-width: 700px;
+    margin: 2rem auto 0;
+    padding: 0 1rem;
+  }
+
+  .query-group {
+    margin-bottom: 0.5rem;
+  }
+
+  .query-group-inner {
+    border: 2px solid #0f3460;
+    border-radius: 8px;
+    overflow: visible;
+  }
+
+  .query-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0.5rem 0.3rem 0.75rem;
+    background: #0f3460;
+  }
+
+  .query-group-options {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .query-remove {
+    background: none;
+    border: none;
+    color: #667;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0 0.25rem;
+    line-height: 1;
+  }
+
+  .query-remove:hover { color: #e94560; }
+
+  .and-separator {
+    text-align: center;
+    color: #e94560;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.25rem 0;
+  }
+
+  .add-query-btn {
+    display: block;
+    margin: 0.75rem auto 0;
+    background: none;
+    border: 1px dashed #0f3460;
+    color: #667;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+
+  .add-query-btn:hover {
+    border-color: #e94560;
+    color: #e94560;
+  }
+
+  .tags-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0.5rem;
+    background: #16213e;
+    align-items: center;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #e94560;
+    color: #fff;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    animation: fadeIn 0.15s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .tag button.tag-remove {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    opacity: 0.7;
+  }
+
+  .tag button.tag-remove:hover { opacity: 1; }
+
+  .tag .segue-toggle {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0 0.15rem;
+    opacity: 0.35;
+    margin-left: -0.1rem;
+  }
+
+  .tag .segue-toggle:hover { opacity: 0.7; }
+  .tag .segue-toggle.active { opacity: 1; }
+
+  .input-row {
+    position: relative;
+  }
+
+  .query-group .song-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    background: #16213e;
+    color: #e0e0e0;
+    border: none;
+    border-top: 1px solid #0f3460;
+    outline: none;
+  }
+
+  .query-group .song-input:focus {
+    background: #1a2540;
+  }
+
+  .query-group .song-input::placeholder {
+    color: #556;
+  }
+
+  .autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #16213e;
+    border: 2px solid #e94560;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+  }
+
+  .autocomplete-list.visible { display: block; }
+
+  .autocomplete-item {
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #0f3460;
+  }
+
+  .autocomplete-item:last-child { border-bottom: none; }
+  .autocomplete-item:hover,
+  .autocomplete-item.active {
+    background: #0f3460;
+    color: #e94560;
+  }
+
+  .autocomplete-item .alias-hint {
+    color: #667;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+  }
+
+  .results-header {
+    max-width: 700px;
+    margin: 1.5rem auto 0.5rem;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .results-header h2 {
+    font-size: 1.1rem;
+    color: #8899aa;
+    font-weight: 400;
+  }
+
+  .results-header .count {
+    color: #e94560;
+    font-weight: 600;
+  }
+
+  .sort-toggle {
+    background: none;
+    border: 1px solid #0f3460;
+    color: #8899aa;
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+
+  .sort-toggle:hover {
+    border-color: #e94560;
+    color: #e94560;
+  }
+
+  .year-chart {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: none;
+  }
+
+  .year-chart.visible { display: block; }
+
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 80px;
+    padding-top: 0.5rem;
+  }
+
+  .chart-bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    position: relative;
+  }
+
+  .chart-bar {
+    width: 100%;
+    background: #e94560;
+    border-radius: 2px 2px 0 0;
+    min-height: 0;
+    transition: height 0.2s;
+    position: relative;
+    cursor: default;
+  }
+
+  .chart-bar:hover { background: #ff6b81; }
+
+  .chart-bar-col .chart-count {
+    position: absolute;
+    top: -1.1rem;
+    font-size: 0.65rem;
+    color: #e94560;
+    display: none;
+  }
+
+  .chart-bar-col:hover .chart-count { display: block; }
+
+  .chart-labels {
+    display: flex;
+    gap: 1px;
+    margin-top: 0.2rem;
+  }
+
+  .chart-labels span {
+    flex: 1;
+    text-align: center;
+    font-size: 0.6rem;
+    color: #556;
+  }
+
+  .results {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 1rem 3rem;
+  }
+
+  .show-card {
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+
+  .show-card:hover {
+    border-color: #e94560;
+  }
+
+  .show-summary {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+
+  .show-summary:hover { background: rgba(233, 69, 96, 0.05); }
+
+  .show-date {
+    font-weight: 600;
+    color: #e94560;
+    min-width: 6.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .show-venue {
+    flex: 1;
+    margin: 0 1rem;
+    color: #ccc;
+  }
+
+  .show-venue .venue-name { font-weight: 500; }
+  .show-venue .venue-loc { color: #778; font-size: 0.85rem; }
+
+  .show-arrow {
+    color: #556;
+    transition: transform 0.2s;
+    font-size: 0.8rem;
+  }
+
+  .show-card.expanded .show-arrow {
+    transform: rotate(90deg);
+  }
+
+  .show-detail {
+    display: none;
+    padding: 0 1rem 1rem;
+    border-top: 1px solid #0f3460;
+  }
+
+  .show-card.expanded .show-detail {
+    display: block;
+  }
+
+  .set-block {
+    margin-top: 0.75rem;
+  }
+
+  .set-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #667;
+    margin-bottom: 0.3rem;
+  }
+
+  .set-songs {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: #bbb;
+  }
+
+  .set-songs .highlight {
+    color: #e94560;
+    font-weight: 600;
+  }
+
+  .segue-arrow {
+    color: #556;
+    margin: 0 0.15rem;
+  }
+
+  .archive-link {
+    display: inline-block;
+    margin-top: 0.75rem;
+    color: #e94560;
+    text-decoration: none;
+    font-size: 0.85rem;
+    border: 1px solid #e94560;
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+
+  .archive-link:hover {
+    background: #e94560;
+    color: #fff;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #556;
+  }
+
+  .empty-state p {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state .hint {
+    font-size: 0.85rem;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 4rem;
+    color: #667;
+    font-size: 1.1rem;
+  }
+
+  .order-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    color: #8899aa;
+    font-size: 0.8rem;
+    user-select: none;
+  }
+
+  .order-toggle input[type="checkbox"] {
+    accent-color: #e94560;
+    cursor: pointer;
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .order-toggle:hover { color: #e94560; }
+
+  .set-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: 0.5rem;
+    padding-left: 0.75rem;
+    border-left: 1px solid #1a1a2e;
+  }
+
+  .set-filter-btn {
+    background: none;
+    border: 1px solid #334;
+    color: #667;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .set-filter-btn:hover { border-color: #e94560; color: #e94560; }
+  .set-filter-btn.active { border-color: #e94560; color: #e94560; background: rgba(233,69,96,0.15); }
+
+  .year-range {
+    max-width: 700px;
+    margin: 0.75rem auto 0;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .year-range label {
+    color: #8899aa;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .year-range input[type="range"] {
+    flex: 1;
+    accent-color: #e94560;
+    cursor: pointer;
+  }
+
+  .year-range .year-val {
+    color: #e94560;
+    font-weight: 600;
+    font-size: 0.9rem;
+    min-width: 2.5rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.5rem; }
+    .show-summary { flex-wrap: wrap; gap: 0.25rem; }
+    .show-date { min-width: auto; }
+    .show-venue { margin: 0; width: 100%; }
+    .year-range { flex-wrap: wrap; gap: 0.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Grateful Dead Show Finder</h1>
+  <p>Find shows by song combination &middot; 2,358 shows &middot; 1965&ndash;1995</p>
+</header>
+
+<div class="queries-container" id="queriesContainer"></div>
+<button class="add-query-btn" id="addQueryBtn">+ Add query</button>
+
+<div class="year-range">
+  <label for="yearFrom">From</label>
+  <span class="year-val" id="yearFromVal">1965</span>
+  <input type="range" id="yearFrom" min="1965" max="1995" value="1965">
+  <input type="range" id="yearTo" min="1965" max="1995" value="1995">
+  <span class="year-val" id="yearToVal">1995</span>
+  <label for="yearTo">To</label>
+</div>
+
+<div class="year-chart" id="yearChart"></div>
+
+<div class="results-header" id="resultsHeader" style="display:none">
+  <h2><span class="count" id="resultCount">0</span> shows found</h2>
+  <button class="sort-toggle" id="sortToggle">Newest first</button>
+</div>
+
+<div class="results" id="results">
+  <div class="loading" id="loading">Loading setlist data...</div>
+</div>
+
+<script>
+// Song alias map for common Deadhead abbreviations
+const ALIASES = {
+  "nfa": "Not Fade Away",
+  "pitb": "Playing In The Band",
+  "omsn": "One More Saturday Night",
+  "gdtrfb": "Goin' Down The Road Feelin' Bad",
+  "tleo": "They Love Each Other",
+  "fotd": "Friend Of The Devil",
+  "fotm": "Fire On The Mountain",
+  "eotw": "Eyes Of The World",
+  "hlcs": "Help On The Way",
+  "hotw": "Help On The Way",
+  "jbd": "Jack-A-Roe",
+  "lol": "Looks Like Rain",
+  "llr": "Looks Like Rain",
+  "me&ba": "Me And Bobby McGee",
+  "me & ba": "Me And Bobby McGee",
+  "bobbyblue": "Me And Bobby McGee",
+  "ds": "Dark Star",
+  "darkstar": "Dark Star",
+  "dark star": "Dark Star",
+  "sts": "Saint Stephen",
+  "saint stephen": "Saint Stephen",
+  "st. stephen": "Saint Stephen",
+  "st stephen": "Saint Stephen",
+  "tou": "Touch Of Grey",
+  "tog": "Touch Of Grey",
+  "uw": "Uncle John's Band",
+  "ujb": "Uncle John's Band",
+  "unclejohn": "Uncle John's Band",
+  "uncle johns band": "Uncle John's Band",
+  "uncle john's band": "Uncle John's Band",
+  "ss": "Shakedown Street",
+  "shakedown": "Shakedown Street",
+  "smag": "Sugar Magnolia",
+  "sugarmag": "Sugar Magnolia",
+  "sugar mag": "Sugar Magnolia",
+  "sugaree": "Sugaree",
+  "bertha": "Bertha",
+  "casey": "Casey Jones",
+  "cj": "Casey Jones",
+  "scarlet": "Scarlet Begonias",
+  "sb": "Scarlet Begonias",
+  "fire": "Fire On The Mountain",
+  "sb>f": "Scarlet Begonias",
+  "estimated": "Estimated Prophet",
+  "ep": "Estimated Prophet",
+  "china": "China Cat Sunflower",
+  "ccs": "China Cat Sunflower",
+  "chinacat": "China Cat Sunflower",
+  "china cat": "China Cat Sunflower",
+  "rider": "I Know You Rider",
+  "ikyr": "I Know You Rider",
+  "cc>r": "China Cat Sunflower",
+  "bird": "Bird Song",
+  "birdsong": "Bird Song",
+  "wrs": "Weather Report Suite Part 1",
+  "weather": "Weather Report Suite Part 1",
+  "morningdew": "Morning Dew",
+  "dew": "Morning Dew",
+  "terrapin": "Terrapin Station",
+  "ts": "Terrapin Station",
+  "franklins": "Franklin's Tower",
+  "frank": "Franklin's Tower",
+  "wharf": "Wharf Rat",
+  "wr": "Wharf Rat",
+  "truckin": "Truckin'",
+  "truckin'": "Truckin'",
+  "drums": "Drums",
+  "space": "Space",
+  "drums/space": "Drums",
+  "lovelight": "Turn On Your Lovelight",
+  "ll": "Turn On Your Lovelight",
+  "toomr": "The Other One",
+  "too": "The Other One",
+  "the other one": "The Other One",
+  "otherOne": "The Other One",
+  "althea": "Althea",
+  "jack straw": "Jack Straw",
+  "js": "Jack Straw",
+  "jackstraw": "Jack Straw",
+  "samson": "Samson And Delilah",
+  "deal": "Deal",
+  "loser": "Loser",
+  "ramble": "Ramble On Rose",
+  "ror": "Ramble On Rose",
+  "bdeyes": "Brown Eyed Women",
+  "browneyed": "Brown Eyed Women",
+  "brown eyed": "Brown Eyed Women",
+  "tennessee": "Tennessee Jed",
+  "tjed": "Tennessee Jed",
+  "jed": "Tennessee Jed",
+  "row jimmy": "Row Jimmy",
+  "rj": "Row Jimmy",
+  "stella": "Stella Blue",
+  "mississippi": "Mississippi Half Step",
+  "halfstep": "Mississippi Half Step",
+  "half step": "Mississippi Half Step",
+  "mhsut": "Mississippi Half Step",
+  "lazy": "Lazy Lightning",
+  "supplication": "Supplication",
+  "lost sailor": "Lost Sailor",
+  "ls": "Lost Sailor",
+  "saint": "Saint Of Circumstance",
+  "soc": "Saint Of Circumstance",
+  "slipknot": "Slipknot!",
+  "slip": "Slipknot!",
+};
+
+let DATA = null;
+// Each query.songs entry is { name: string, segue: boolean }
+// setFilter: null (any), "Set 1", "Set 2", "Encore"
+let queries = [{ songs: [], inOrder: false, adjacent: false, setFilter: null }];
+let sortAsc = true;
+let activeGroupIdx = 0;
+let activeIdx = -1;
+
+async function loadData() {
+  const resp = await fetch("shows.json");
+  DATA = await resp.json();
+  document.getElementById("loading").style.display = "none";
+  renderQueries();
+  showEmptyState();
+}
+
+function showEmptyState() {
+  document.getElementById("results").innerHTML = `
+    <div class="empty-state">
+      <p>Search for songs to find matching shows</p>
+      <div class="hint">Try "Dark Star", "Scarlet Begonias", or abbreviations like "NFA"</div>
+    </div>`;
+}
+
+function getSuggestions(query, groupSongs) {
+  if (!DATA || !query) return [];
+  const q = query.toLowerCase().trim();
+  const groupNames = groupSongs.map(s => s.name);
+
+  const aliasMatches = [];
+  for (const [alias, canonical] of Object.entries(ALIASES)) {
+    if (alias.startsWith(q) && !groupNames.includes(canonical)) {
+      aliasMatches.push({ name: canonical, alias: alias });
+    }
+  }
+
+  const directMatches = DATA.songs.filter(s => {
+    if (groupNames.includes(s)) return false;
+    return s.toLowerCase().includes(q);
+  }).map(s => ({ name: s, alias: null }));
+
+  const seen = new Set();
+  const results = [];
+
+  for (const m of directMatches) {
+    if (m.name.toLowerCase().startsWith(q) && !seen.has(m.name)) {
+      seen.add(m.name);
+      results.push(m);
+    }
+  }
+  for (const m of aliasMatches) {
+    if (!seen.has(m.name)) { seen.add(m.name); results.push(m); }
+  }
+  for (const m of directMatches) {
+    if (!seen.has(m.name)) { seen.add(m.name); results.push(m); }
+  }
+
+  return results.slice(0, 12);
+}
+
+// Render all query groups
+function renderQueries() {
+  const container = document.getElementById("queriesContainer");
+  container.innerHTML = queries.map((q, gi) => {
+    const tags = q.songs.map((song, si) =>
+      `<span class="tag">${song.name}<button class="segue-toggle ${song.segue ? 'active' : ''}" onclick="toggleSegue(${gi},${si})" title="Require segue >">&gt;</button><button class="tag-remove" onclick="removeTag(${gi},${si})">&times;</button></span>`
+    ).join("");
+
+    const removeBtn = queries.length > 1
+      ? `<button class="query-remove" onclick="removeQuery(${gi})" title="Remove query">&times;</button>`
+      : "";
+
+    return (gi > 0 ? '<div class="and-separator">AND</div>' : '') +
+    `<div class="query-group" data-gi="${gi}">
+      <div class="query-group-inner">
+        <div class="query-group-header">
+          <div class="query-group-options">
+            <label class="order-toggle">
+              <input type="checkbox" ${q.inOrder ? "checked" : ""} onchange="toggleOrder(${gi}, this.checked)">
+              In order
+            </label>
+            <label class="order-toggle">
+              <input type="checkbox" ${q.adjacent ? "checked" : ""} onchange="toggleAdjacent(${gi}, this.checked)">
+              Back-to-back
+            </label>
+            <div class="set-filters">
+              <button class="set-filter-btn ${q.setFilter === 'Set 1' ? 'active' : ''}" onclick="toggleSetFilter(${gi},'Set 1')">S1</button>
+              <button class="set-filter-btn ${q.setFilter === 'Set 2' ? 'active' : ''}" onclick="toggleSetFilter(${gi},'Set 2')">S2</button>
+              <button class="set-filter-btn ${q.setFilter === 'Encore' ? 'active' : ''}" onclick="toggleSetFilter(${gi},'Encore')">E</button>
+            </div>
+          </div>
+          ${removeBtn}
+        </div>
+        <div class="tags-area">${tags}</div>
+        <div class="input-row">
+          <input type="text" class="song-input" placeholder="Type a song name..."
+            autocomplete="off" onfocus="setActiveGroup(${gi})" data-gi="${gi}">
+          <div class="autocomplete-list" data-gi="${gi}"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // Attach input listeners to all song inputs
+  container.querySelectorAll(".song-input").forEach(input => {
+    const gi = parseInt(input.dataset.gi);
+    input.addEventListener("input", () => handleInput(gi, input));
+    input.addEventListener("keydown", (e) => handleKeydown(gi, input, e));
+  });
+}
+
+function setActiveGroup(gi) {
+  activeGroupIdx = gi;
+  activeIdx = -1;
+  // Close other autocompletes
+  document.querySelectorAll(".autocomplete-list").forEach(el => {
+    if (parseInt(el.dataset.gi) !== gi) {
+      el.classList.remove("visible");
+      el.innerHTML = "";
+    }
+  });
+}
+
+function handleInput(gi, input) {
+  const val = input.value.trim();
+  const acList = input.closest(".input-row").querySelector(".autocomplete-list");
+  if (!val) { acList.classList.remove("visible"); acList.innerHTML = ""; return; }
+  const suggestions = getSuggestions(val, queries[gi].songs);
+  renderAutocomplete(gi, acList, suggestions);
+}
+
+function handleKeydown(gi, input, e) {
+  const acList = input.closest(".input-row").querySelector(".autocomplete-list");
+  const items = acList.querySelectorAll(".autocomplete-item");
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    activeIdx = Math.min(activeIdx + 1, items.length - 1);
+    updateActive(items);
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    activeIdx = Math.max(activeIdx - 1, 0);
+    updateActive(items);
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    if (activeIdx >= 0 && items[activeIdx]) {
+      items[activeIdx].click();
+    } else if (items.length > 0) {
+      items[0].click();
+    }
+  } else if (e.key === "Escape") {
+    acList.classList.remove("visible"); acList.innerHTML = "";
+    activeIdx = -1;
+  } else if (e.key === "Backspace" && !input.value && queries[gi].songs.length > 0) {
+    queries[gi].songs.pop();
+    renderQueries();
+    doSearch();
+  }
+}
+
+function renderAutocomplete(gi, el, suggestions) {
+  if (suggestions.length === 0) {
+    el.classList.remove("visible"); el.innerHTML = ""; activeIdx = -1;
+    return;
+  }
+  activeIdx = -1;
+  el.innerHTML = suggestions.map((s, i) => {
+    const aliasHint = s.alias ? `<span class="alias-hint">(${s.alias})</span>` : "";
+    return `<div class="autocomplete-item" data-idx="${i}" onclick="addSong(${gi},'${s.name.replace(/'/g, "\\'")}')">${s.name}${aliasHint}</div>`;
+  }).join("");
+  el.classList.add("visible");
+}
+
+function updateActive(items) {
+  items.forEach((el, i) => el.classList.toggle("active", i === activeIdx));
+  if (items[activeIdx]) items[activeIdx].scrollIntoView({ block: "nearest" });
+}
+
+function addSong(gi, name) {
+  if (!queries[gi].songs.some(s => s.name === name)) {
+    queries[gi].songs.push({ name, segue: false });
+  }
+  renderQueries();
+  doSearch();
+  // Focus the input of this group
+  const input = document.querySelector(`.song-input[data-gi="${gi}"]`);
+  if (input) input.focus();
+}
+
+function removeTag(gi, si) {
+  queries[gi].songs.splice(si, 1);
+  renderQueries();
+  doSearch();
+}
+
+function toggleSegue(gi, si) {
+  queries[gi].songs[si].segue = !queries[gi].songs[si].segue;
+  renderQueries();
+  doSearch();
+}
+
+function toggleOrder(gi, checked) {
+  queries[gi].inOrder = checked;
+  if (!checked) queries[gi].adjacent = false;
+  renderQueries();
+  doSearch();
+}
+
+function toggleAdjacent(gi, checked) {
+  queries[gi].adjacent = checked;
+  if (checked) queries[gi].inOrder = true;
+  renderQueries();
+  doSearch();
+}
+
+function toggleSetFilter(gi, setLabel) {
+  queries[gi].setFilter = queries[gi].setFilter === setLabel ? null : setLabel;
+  renderQueries();
+  doSearch();
+}
+
+function addQuery() {
+  queries.push({ songs: [], inOrder: false, adjacent: false, setFilter: null });
+  renderQueries();
+}
+
+function removeQuery(gi) {
+  queries.splice(gi, 1);
+  renderQueries();
+  doSearch();
+}
+
+function getAllSelectedSongs() {
+  const all = new Set();
+  for (const q of queries) {
+    for (const s of q.songs) all.add(s.name);
+  }
+  return all;
+}
+
+// Flatten show sets into a single ordered list with segue and set label info
+function flattenSets(show, setFilter) {
+  const flat = [];
+  for (const set of show.sets) {
+    if (setFilter && set.label !== setFilter) continue;
+    for (const s of set.songs) {
+      flat.push({ name: s.name, segued: s.segued, setLabel: set.label });
+    }
+  }
+  return flat;
+}
+
+function matchesQuery(show, query) {
+  const songNames = query.songs.map(s => s.name);
+  const flat = flattenSets(show, query.setFilter);
+  const flatNames = flat.map(f => f.name);
+
+  // All songs must appear in the (possibly filtered) set
+  if (!songNames.every(name => flatNames.includes(name))) return false;
+
+  const needsPositional = (query.inOrder || query.adjacent) && query.songs.length > 1;
+  const needsSegue = query.songs.some(s => s.segue);
+
+  if (!needsPositional && !needsSegue) return true;
+
+  if (needsPositional) {
+    let lastIdx = -1;
+    for (const song of query.songs) {
+      const idx = flat.findIndex((f, i) => i > lastIdx && f.name === song.name);
+      if (idx === -1) return false;
+      if (query.adjacent && lastIdx !== -1 && idx !== lastIdx + 1) return false;
+      if (song.segue && !flat[idx].segued) return false;
+      lastIdx = idx;
+    }
+  } else {
+    for (const song of query.songs) {
+      if (!song.segue) continue;
+      const found = flat.some(f => f.name === song.name && f.segued);
+      if (!found) return false;
+    }
+  }
+
+  return true;
+}
+
+function doSearch() {
+  const chartEl = document.getElementById("yearChart");
+  const hasAnySongs = queries.some(q => q.songs.length > 0);
+  if (!hasAnySongs) {
+    document.getElementById("resultsHeader").style.display = "none";
+    chartEl.classList.remove("visible");
+    showEmptyState();
+    return;
+  }
+
+  const yearFrom = parseInt(document.getElementById("yearFrom").value);
+  const yearTo = parseInt(document.getElementById("yearTo").value);
+
+  const matches = DATA.shows.filter(show => {
+    if (show.year < yearFrom || show.year > yearTo) return false;
+    return queries.every(q => q.songs.length === 0 || matchesQuery(show, q));
+  });
+
+  if (!sortAsc) matches.reverse();
+
+  document.getElementById("resultsHeader").style.display = "flex";
+  document.getElementById("resultCount").textContent = matches.length;
+
+  renderChart(matches, yearFrom, yearTo);
+
+  if (matches.length === 0) {
+    document.getElementById("results").innerHTML =
+      `<div class="empty-state"><p>No shows found with that combination</p></div>`;
+    return;
+  }
+
+  const allSongs = getAllSelectedSongs();
+  document.getElementById("results").innerHTML = matches.map((show, i) =>
+    renderShowCard(show, i, allSongs)
+  ).join("");
+}
+
+function renderChart(matches, yearFrom, yearTo) {
+  const chartEl = document.getElementById("yearChart");
+
+  if (matches.length === 0) {
+    chartEl.classList.remove("visible");
+    return;
+  }
+
+  // Count per year
+  const counts = {};
+  for (let y = yearFrom; y <= yearTo; y++) counts[y] = 0;
+  for (const show of matches) counts[show.year]++;
+
+  const maxCount = Math.max(...Object.values(counts), 1);
+  const years = [];
+  for (let y = yearFrom; y <= yearTo; y++) years.push(y);
+
+  // Show labels every ~5 years, or all if few years
+  const labelEvery = years.length > 15 ? 5 : years.length > 8 ? 2 : 1;
+
+  const barsHtml = years.map(y => {
+    const c = counts[y];
+    const pct = (c / maxCount) * 100;
+    return `<div class="chart-bar-col">
+      <span class="chart-count">${c}</span>
+      <div class="chart-bar" style="height:${c ? Math.max(pct, 3) : 0}%" title="${y}: ${c}"></div>
+    </div>`;
+  }).join("");
+
+  const labelsHtml = years.map(y =>
+    `<span>${(y % labelEvery === 0) ? ("'" + String(y).slice(2)) : ""}</span>`
+  ).join("");
+
+  chartEl.innerHTML = `<div class="chart-bars">${barsHtml}</div><div class="chart-labels">${labelsHtml}</div>`;
+  chartEl.classList.add("visible");
+}
+
+function renderShowCard(show, idx, highlightSongs) {
+  const setsHtml = show.sets.map(set => {
+    const songsHtml = set.songs.map((s, j) => {
+      const cls = highlightSongs.has(s.name) ? ' class="highlight"' : "";
+      const segue = s.segued && j < set.songs.length - 1
+        ? '<span class="segue-arrow"> > </span>'
+        : (j < set.songs.length - 1 ? ", " : "");
+      return `<span${cls}>${s.name}</span>${segue}`;
+    }).join("");
+
+    return `<div class="set-block">
+      <div class="set-label">${set.label}</div>
+      <div class="set-songs">${songsHtml}</div>
+    </div>`;
+  }).join("");
+
+  return `<div class="show-card" id="card-${idx}">
+    <div class="show-summary" onclick="toggleCard(${idx})">
+      <span class="show-date">${show.date}</span>
+      <span class="show-venue">
+        <span class="venue-name">${show.venue}</span>
+        <span class="venue-loc">${show.location}</span>
+      </span>
+      <span class="show-arrow">&#9654;</span>
+    </div>
+    <div class="show-detail">
+      ${setsHtml}
+      <a class="archive-link" href="${show.archiveUrl}" target="_blank" rel="noopener">
+        Listen on Archive.org
+      </a>
+    </div>
+  </div>`;
+}
+
+function toggleCard(idx) {
+  document.getElementById(`card-${idx}`).classList.toggle("expanded");
+}
+
+// Year range sliders
+const yearFromEl = document.getElementById("yearFrom");
+const yearToEl = document.getElementById("yearTo");
+const yearFromVal = document.getElementById("yearFromVal");
+const yearToVal = document.getElementById("yearToVal");
+
+yearFromEl.addEventListener("input", () => {
+  if (parseInt(yearFromEl.value) > parseInt(yearToEl.value)) {
+    yearFromEl.value = yearToEl.value;
+  }
+  yearFromVal.textContent = yearFromEl.value;
+  doSearch();
+});
+
+yearToEl.addEventListener("input", () => {
+  if (parseInt(yearToEl.value) < parseInt(yearFromEl.value)) {
+    yearToEl.value = yearFromEl.value;
+  }
+  yearToVal.textContent = yearToEl.value;
+  doSearch();
+});
+
+// Add query button
+document.getElementById("addQueryBtn").addEventListener("click", addQuery);
+
+// Sort toggle
+document.getElementById("sortToggle").addEventListener("click", () => {
+  sortAsc = !sortAsc;
+  document.getElementById("sortToggle").textContent = sortAsc ? "Newest first" : "Oldest first";
+  doSearch();
+});
+
+// Click outside to close autocomplete
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".input-row")) {
+    document.querySelectorAll(".autocomplete-list").forEach(el => {
+      el.classList.remove("visible"); el.innerHTML = "";
+    });
+    activeIdx = -1;
+  }
+});
+
+// Load data on start
+loadData();
+</script>
+
+</body>
+</html>
