@@ -1,0 +1,11 @@
+{
+  "name": "crossword-generator",
+  "version": "1.0.0",
+  "description": "Crossword puzzle generator with CLI + interactive web solver",
+  "type": "module",
+  "scripts": {
+    "generate": "node src/generate.js",
+    "serve": "npx http-server public -p 8080 -o"
+  },
+  "dependencies": {}
+}

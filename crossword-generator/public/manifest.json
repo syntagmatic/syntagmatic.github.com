@@ -1,0 +1,14 @@
+[
+  {
+    "file": "nature.json",
+    "name": "Nature"
+  },
+  {
+    "file": "city.json",
+    "name": "City"
+  },
+  {
+    "file": "space.json",
+    "name": "Space"
+  }
+]

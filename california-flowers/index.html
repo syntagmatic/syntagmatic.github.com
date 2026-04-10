@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Native California Flowers — Richmond, CA</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Native California Flowers</h1>
+    <p class="subtitle">A curated guide for Richmond, CA — USDA Zone 10a/10b</p>
+  </header>
+
+  <main>
+    <!-- Bloom Calendar -->
+    <section id="calendar-section">
+      <div class="calendar-header">
+        <h2>Bloom Calendar</h2>
+        <div id="stack-toggles" class="toggle-group">
+          <span class="toggle-label">Stack by:</span>
+        </div>
+      </div>
+      <div id="calendar"></div>
+    </section>
+
+    <!-- Filter Bar -->
+    <section id="filter-bar">
+      <div class="search-wrapper">
+        <input type="text" id="search-input" placeholder="Search by name…" autocomplete="off">
+      </div>
+      <div class="facets">
+        <div class="facet" id="facet-color">
+          <span class="facet-label">Color</span>
+          <div class="facet-options"></div>
+        </div>
+        <div class="facet" id="facet-plantType">
+          <span class="facet-label">Type</span>
+          <div class="facet-options"></div>
+        </div>
+        <div class="facet" id="facet-sun">
+          <span class="facet-label">Sun</span>
+          <div class="facet-options"></div>
+        </div>
+        <div class="facet" id="facet-water">
+          <span class="facet-label">Water</span>
+          <div class="facet-options"></div>
+        </div>
+        <div class="facet" id="facet-droughtTolerant">
+          <span class="facet-label">Drought</span>
+          <div class="facet-options"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active Filter Chips -->
+    <section id="chip-bar">
+      <div id="active-chips"></div>
+      <button id="clear-all" class="hidden">Clear all</button>
+      <span id="result-count"></span>
+    </section>
+
+    <!-- Card Grid -->
+    <section id="card-grid"></section>
+  </main>
+
+  <script src="calendar.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

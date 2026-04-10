@@ -1,0 +1,302 @@
+/* === Reset & Base === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fafaf7;
+  --surface: #fff;
+  --border: #e2ddd5;
+  --text: #2c2c2c;
+  --text-muted: #6b6560;
+  --accent: #4a7c59;
+  --accent-light: #e8f0ea;
+  --chip-bg: #f0ebe4;
+  --radius: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+/* === Header === */
+header { margin-bottom: 32px; }
+h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; }
+.subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+h2 { font-size: 1rem; font-weight: 600; }
+
+/* === Calendar === */
+#calendar-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.toggle-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.toggle-btn {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+.toggle-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+#calendar svg { width: 100%; overflow: visible; }
+
+.bar-segment { cursor: pointer; transition: opacity 0.15s; }
+.bar-segment:hover { opacity: 0.8; }
+
+.month-label {
+  font-size: 12px;
+  fill: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.month-label:hover { fill: var(--accent); }
+.month-label.active { fill: var(--accent); font-weight: 700; }
+
+.y-axis text { font-size: 11px; fill: var(--text-muted); }
+.y-axis line, .y-axis path { stroke: var(--border); }
+
+.calendar-tooltip {
+  position: absolute;
+  background: #333;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+/* === Filter Bar === */
+#filter-bar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.search-wrapper { flex: 0 0 100%; }
+
+#search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.15s;
+}
+#search-input:focus { border-color: var(--accent); }
+
+.facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.facet-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+
+.facet-btn {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.facet-btn:hover { border-color: var(--accent); }
+.facet-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.color-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 3px;
+  vertical-align: middle;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+/* === Chip Bar === */
+#chip-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+#active-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  background: var(--chip-bg);
+  border-radius: 999px;
+  color: var(--text);
+}
+
+.chip-remove {
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+.chip-remove:hover { color: var(--text); }
+
+#clear-all {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+#clear-all.hidden { display: none; }
+
+#result-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* === Card Grid === */
+#card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.flower-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.flower-card:hover { box-shadow: var(--shadow); border-color: #ccc; }
+.flower-card.expanded { border-color: var(--accent); }
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.card-names { flex: 1; min-width: 0; }
+.card-common { font-weight: 600; font-size: 0.95rem; }
+.card-scientific { font-style: italic; font-size: 0.8rem; color: var(--text-muted); }
+
+.card-colors {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+  padding-top: 3px;
+}
+
+.card-bloom-bar {
+  margin: 10px 0 8px;
+  display: flex;
+  gap: 2px;
+}
+
+.bloom-cell {
+  flex: 1;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--border);
+}
+.bloom-cell.active { background: var(--accent); }
+
+.card-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.card-tag { display: flex; align-items: center; gap: 3px; }
+
+.card-details {
+  display: none;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.flower-card.expanded .card-details { display: block; }
+
+.detail-row { display: flex; gap: 8px; margin-bottom: 4px; }
+.detail-label { font-weight: 500; color: var(--text-muted); min-width: 60px; }
+
+.card-description {
+  margin-top: 8px;
+  color: var(--text);
+}
+
+/* === Sun/Water Icons (text-based) === */
+.icon-sun::before { content: "☀"; }
+.icon-partial::before { content: "⛅"; }
+.icon-shade::before { content: "☁"; }
+.icon-water-low::before { content: "💧"; }
+.icon-water-moderate::before { content: "💧💧"; font-size: 0.6em; }
+.icon-water-high::before { content: "💧💧💧"; font-size: 0.5em; }
+.icon-drought::before { content: "🌵"; }
+
+/* === Responsive === */
+@media (max-width: 600px) {
+  body { padding: 16px 12px 40px; }
+  #card-grid { grid-template-columns: 1fr; }
+  #filter-bar { gap: 12px; }
+}

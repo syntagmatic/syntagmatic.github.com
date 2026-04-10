@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ski Downhill</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { overflow: hidden; background: #000; font-family: 'Segoe UI', Arial, sans-serif; }
+  canvas { display: block; }
+  #hud { position: absolute; top: 20px; left: 20px; color: #222; font-size: 22px;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8); user-select: none; }
+  #hud div { margin-bottom: 6px; }
+  #message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    color: #fff; font-size: 20px; text-align: center; pointer-events: none;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.3s; }
+  #message.visible { opacity: 1; }
+  #results { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.75); color: #fff; padding: 40px 60px; border-radius: 16px;
+    text-align: center; display: none; font-size: 20px; }
+  #results h1 { font-size: 36px; margin-bottom: 12px; }
+  #results .time { font-size: 48px; font-weight: bold; color: #4fc3f7; margin: 16px 0; }
+  #results button { margin-top: 20px; padding: 12px 32px; font-size: 18px; border: none;
+    border-radius: 8px; background: #4fc3f7; color: #000; cursor: pointer; font-weight: bold; }
+  #results button:hover { background: #81d4fa; }
+  #start { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.75); color: #fff; padding: 40px 60px; border-radius: 16px;
+    text-align: center; font-size: 20px; }
+  #start h1 { font-size: 42px; margin-bottom: 8px; }
+  #start p { margin: 8px 0; color: #ccc; }
+  #start button { margin-top: 20px; padding: 12px 32px; font-size: 18px; border: none;
+    border-radius: 8px; background: #4fc3f7; color: #000; cursor: pointer; font-weight: bold; }
+  #start button:hover { background: #81d4fa; }
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <div id="timer">Time: 0.00s</div>
+  <div id="distance">Distance: 0m / 1500m</div>
+</div>
+
+<div id="message"></div>
+
+<div id="start">
+  <h1>Ski Downhill</h1>
+  <p>Steer: Arrow Keys / A,D</p>
+  <p>Jump: Space</p>
+  <p>Dodge rocks, hit ramps, reach the finish!</p>
+  <p>Saw: C — cut down trees!</p>
+  <button onclick="startGame()">Start</button>
+</div>
+
+<div id="results">
+  <h1>Finish!</h1>
+  <div class="time" id="finalTime">0.00s</div>
+  <p>You made it down the mountain!</p>
+  <button onclick="restartGame()">Run Again</button>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+// --- Constants ---
+const SLOPE_LENGTH = 1800, SLOPE_WIDTH = 60, SLOPE_ANGLE = 0.28;
+const COURSE_DISTANCE = 1500;
+const GRAVITY = 20, JUMP_FORCE = 18;
+const STEER_SPEED = 18, MAX_STEER = 22;
+const BASE_SPEED = 18, MAX_SPEED = 30;
+const CAM_OFFSET = new THREE.Vector3(0, 4.5, 8);
+const CAM_LERP = 0.04;
+
+// --- Audio (synthesized via Web Audio API) ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(freq, duration, type = 'sine', vol = 0.3, slide = 0) {
+  const g = audioCtx.createGain();
+  const o = audioCtx.createOscillator();
+  o.type = type; o.frequency.value = freq;
+  if (slide) o.frequency.linearRampToValueAtTime(freq + slide, audioCtx.currentTime + duration);
+  g.gain.setValueAtTime(vol, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + duration);
+}
+function playNoise(duration, vol = 0.2) {
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * duration, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1);
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(vol, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  src.connect(g); g.connect(audioCtx.destination);
+  src.start(); src.stop(audioCtx.currentTime + duration);
+}
+const sfx = {
+  jump() { playTone(300, 0.2, 'sine', 0.25, 400); },
+  bigAir() { playTone(400, 0.35, 'sine', 0.3, 600); },
+  crash() { playNoise(0.5, 0.4); playTone(80, 0.4, 'sawtooth', 0.2); },
+  saw() { playTone(800, 0.15, 'sawtooth', 0.15, -200); playTone(600, 0.15, 'square', 0.08); },
+  timber() { playTone(200, 0.6, 'sawtooth', 0.25, -150); playNoise(0.3, 0.15); },
+  pinecone() { playTone(900, 0.12, 'sine', 0.1, -300); },
+  finish() {
+    [523, 659, 784, 1047].forEach((f, i) => {
+      setTimeout(() => playTone(f, 0.3, 'sine', 0.25), i * 150);
+    });
+  },
+  go() { playTone(660, 0.15, 'square', 0.2); setTimeout(() => playTone(880, 0.25, 'square', 0.25), 180); },
+};
+let windSource = null;
+function startWind() {
+  if (windSource) return;
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1);
+  windSource = audioCtx.createBufferSource(); windSource.buffer = buf; windSource.loop = true;
+  const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 400;
+  const g = audioCtx.createGain(); g.gain.value = 0.06;
+  windSource.connect(filter); filter.connect(g); g.connect(audioCtx.destination);
+  windSource.start();
+  windSource._gain = g; windSource._filter = filter;
+}
+function stopWind() {
+  if (windSource) { windSource.stop(); windSource = null; }
+}
+
+// --- State ---
+let state = 'start'; // start | playing | crashed | finished
+let time = 0, speed = 0, verticalVel = 0, crashTimer = 0;
+let skierPos = new THREE.Vector3(0, 0, 0);
+let skierVelX = 0;
+let onGround = true;
+const keys = {};
+
+// --- Scene setup ---
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x87ceeb, 100, 280);
+
+const camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.1, 300);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+// --- Lighting ---
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+dirLight.position.set(30, 50, 20);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048, 2048);
+dirLight.shadow.camera.left = -60; dirLight.shadow.camera.right = 60;
+dirLight.shadow.camera.top = 60; dirLight.shadow.camera.bottom = -60;
+dirLight.shadow.camera.far = 150;
+scene.add(dirLight);
+
+// --- Noise function (simple 2D) ---
+function hash(x, y) {
+  let n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return n - Math.floor(n);
+}
+function smoothNoise(x, y) {
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = x - ix, fy = y - iy;
+  const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+  const a = hash(ix, iy), b = hash(ix + 1, iy);
+  const c = hash(ix, iy + 1), d = hash(ix + 1, iy + 1);
+  return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+}
+function fbm(x, y) {
+  return smoothNoise(x, y) * 0.6 + smoothNoise(x * 2.1, y * 2.1) * 0.3 + smoothNoise(x * 4.3, y * 4.3) * 0.1;
+}
+
+// --- Terrain ---
+const terrainSeg = 256;
+const terrainGeo = new THREE.PlaneGeometry(SLOPE_WIDTH, SLOPE_LENGTH, terrainSeg, terrainSeg);
+terrainGeo.rotateX(-Math.PI / 2);
+const terrainZOffset = -COURSE_DISTANCE / 2;
+const posAttr = terrainGeo.attributes.position;
+for (let i = 0; i < posAttr.count; i++) {
+  const x = posAttr.getX(i), z = posAttr.getZ(i) + terrainZOffset;
+  posAttr.setZ(i, z);
+  const baseSlope = -z * Math.tan(SLOPE_ANGLE);
+  const bump = fbm(x * 0.08, z * 0.08) * 2.5;
+  posAttr.setY(i, baseSlope + bump);
+}
+terrainGeo.computeVertexNormals();
+const terrainMat = new THREE.MeshStandardMaterial({ color: 0xf0f0f0, roughness: 0.9, flatShading: true });
+const terrain = new THREE.Mesh(terrainGeo, terrainMat);
+terrain.receiveShadow = true;
+scene.add(terrain);
+
+function getTerrainHeight(x, z) {
+  const baseSlope = -z * Math.tan(SLOPE_ANGLE);
+  const bump = fbm(x * 0.08, z * 0.08) * 2.5;
+  return baseSlope + bump;
+}
+
+// --- Skier (blocky low-poly) ---
+const skierGroup = new THREE.Group();
+
+// Body
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2244cc, flatShading: true });
+const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 0.5), bodyMat);
+body.position.y = 1.2;
+skierGroup.add(body);
+
+// Head
+const headMat = new THREE.MeshStandardMaterial({ color: 0xffccaa, flatShading: true });
+const head = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.45, 0.45), headMat);
+head.position.y = 2.0;
+skierGroup.add(head);
+
+// Hat
+const hatMat = new THREE.MeshStandardMaterial({ color: 0xcc2222, flatShading: true });
+const hat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.5), hatMat);
+hat.position.y = 2.35;
+skierGroup.add(hat);
+
+// Legs
+const legMat = new THREE.MeshStandardMaterial({ color: 0x222222, flatShading: true });
+const legL = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.7, 0.3), legMat);
+legL.position.set(-0.18, 0.5, 0);
+skierGroup.add(legL);
+const legR = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.7, 0.3), legMat);
+legR.position.set(0.18, 0.5, 0);
+skierGroup.add(legR);
+
+// Arms
+const armMat = new THREE.MeshStandardMaterial({ color: 0x2244cc, flatShading: true });
+const armL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), armMat);
+armL.position.set(-0.55, 1.2, 0);
+armL.rotation.z = 0.3;
+skierGroup.add(armL);
+const armR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), armMat);
+armR.position.set(0.55, 1.2, 0);
+armR.rotation.z = -0.3;
+skierGroup.add(armR);
+
+// Skis
+const skiMat = new THREE.MeshStandardMaterial({ color: 0xdddd00, flatShading: true });
+const skiL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 1.6), skiMat);
+skiL.position.set(-0.2, 0.03, 0);
+skierGroup.add(skiL);
+const skiR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 1.6), skiMat);
+skiR.position.set(0.2, 0.03, 0);
+skierGroup.add(skiR);
+
+skierGroup.traverse(c => { if (c.isMesh) c.castShadow = true; });
+scene.add(skierGroup);
+
+// --- Canyon walls ---
+const wallMat = new THREE.MeshStandardMaterial({ color: 0x8899aa, roughness: 0.95, flatShading: true });
+const wallSegsZ = 120, wallSegsY = 8;
+const wallHeight = 18;
+[-1, 1].forEach(side => {
+  const wallX = side * SLOPE_WIDTH / 2;
+  // Build wall as a PlaneGeometry in XY, then position vertices in world space
+  const wallGeo = new THREE.PlaneGeometry(1, 1, wallSegsZ, wallSegsY);
+  const wp = wallGeo.attributes.position;
+  const zMin = -COURSE_DISTANCE - 100, zMax = 100;
+  const zSpan = zMax - zMin;
+  for (let i = 0; i < wp.count; i++) {
+    const u = wp.getX(i) + 0.5; // 0..1 along Z
+    const v = wp.getY(i) + 0.5; // 0..1 along Y
+    const wz = zMax - u * zSpan;
+    const groundY = getTerrainHeight(wallX, wz);
+    const wy = groundY - 2 + v * wallHeight;
+    const depth = fbm(wz * 0.05 + side * 50, wy * 0.1) * 2.5;
+    wp.setX(i, wallX + side * depth);
+    wp.setY(i, wy);
+    wp.setZ(i, wz);
+  }
+  wallGeo.computeVertexNormals();
+  const wall = new THREE.Mesh(wallGeo, wallMat);
+  wall.receiveShadow = true;
+  wall.castShadow = true;
+  scene.add(wall);
+});
+
+// --- Obstacles (rocks & ramps) ---
+const obstacles = [];
+const rampSnowMat = new THREE.MeshStandardMaterial({ color: 0xe8e8e8, roughness: 0.85, flatShading: true });
+const rampTipMat = new THREE.MeshStandardMaterial({ color: 0x2266ee, roughness: 0.5, flatShading: true });
+
+function createRampMesh() {
+  const group = new THREE.Group();
+  // Snow body — wide wedge shape
+  const bodyGeo = new THREE.BoxGeometry(4.5, 1.2, 3);
+  const body = new THREE.Mesh(bodyGeo, rampSnowMat);
+  body.position.y = 0.6;
+  body.castShadow = true; body.receiveShadow = true;
+  group.add(body);
+  // Sloped top — tilted so it rises toward the downhill (negative Z) end
+  const slopeGeo = new THREE.BoxGeometry(4.5, 0.3, 3.4);
+  const slope = new THREE.Mesh(slopeGeo, rampSnowMat);
+  slope.position.set(0, 1.3, -0.15);
+  slope.rotation.x = 0.3;
+  slope.castShadow = true; slope.receiveShadow = true;
+  group.add(slope);
+  // Blue painted lip at the launch edge (downhill end)
+  const tipGeo = new THREE.BoxGeometry(4.5, 0.25, 0.4);
+  const tip = new THREE.Mesh(tipGeo, rampTipMat);
+  tip.position.set(0, 1.5, -1.3);
+  tip.castShadow = true;
+  group.add(tip);
+  return group;
+}
+
+function seededRandom(seed) {
+  let s = seed;
+  return () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
+}
+
+const rand = seededRandom(42);
+for (let d = 30; d < COURSE_DISTANCE - 30; d += 10 + rand() * 15) {
+  const x = (rand() - 0.5) * (SLOPE_WIDTH - 10);
+  const z = -d;
+  const y = getTerrainHeight(x, z);
+  const ramp = createRampMesh();
+  ramp.position.set(x, y, z);
+  scene.add(ramp);
+  obstacles.push({ mesh: ramp, type: 'ramp', x, z, radius: 2.2 });
+}
+
+// --- Trees (alive, hostile!) ---
+const trees = [];
+const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x5a3a1a, flatShading: true });
+const treeLeafMat = new THREE.MeshStandardMaterial({ color: 0x1a6b1a, flatShading: true });
+const treeLeafAngryMat = new THREE.MeshStandardMaterial({ color: 0x2a8a2a, flatShading: true });
+const treeEyeMat = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xff0000, emissiveIntensity: 0.5 });
+
+function createTree(x, z) {
+  const group = new THREE.Group();
+  const y = getTerrainHeight(x, z);
+  // Trunk
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 3, 6), treeTrunkMat);
+  trunk.position.y = 1.5;
+  trunk.castShadow = true;
+  group.add(trunk);
+  // Foliage tiers
+  const tiers = [
+    { r: 2.2, h: 2.0, y: 3.5 },
+    { r: 1.7, h: 1.8, y: 5.0 },
+    { r: 1.1, h: 1.5, y: 6.2 },
+  ];
+  tiers.forEach(t => {
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(t.r, t.h, 7), treeLeafMat);
+    cone.position.y = t.y;
+    cone.castShadow = true;
+    group.add(cone);
+  });
+  // Angry eyes
+  const eyeGeo = new THREE.SphereGeometry(0.18, 6, 6);
+  const eyeL = new THREE.Mesh(eyeGeo, treeEyeMat);
+  eyeL.position.set(-0.4, 4.0, 0.9);
+  group.add(eyeL);
+  const eyeR = new THREE.Mesh(eyeGeo, treeEyeMat);
+  eyeR.position.set(0.4, 4.0, 0.9);
+  group.add(eyeR);
+
+  group.position.set(x, y, z);
+  scene.add(group);
+  return { mesh: group, x, z, origX: x, origZ: z, alive: true, shootTimer: 1 + rand() * 3, swayPhase: rand() * Math.PI * 2 };
+}
+
+// Place trees along edges and scattered
+for (let d = 20; d < COURSE_DISTANCE - 40; d += 15 + rand() * 20) {
+  // Edge trees
+  const side = rand() < 0.5 ? -1 : 1;
+  const edgeX = side * (SLOPE_WIDTH / 2 - 4 - rand() * 5);
+  trees.push(createTree(edgeX, -d));
+  // Occasional mid-slope tree
+  if (rand() < 0.3) {
+    const midX = (rand() - 0.5) * (SLOPE_WIDTH - 20);
+    trees.push(createTree(midX, -(d + 8 + rand() * 6)));
+  }
+}
+
+// --- Pinecones (enemy projectiles) ---
+const pinecones = [];
+const pineconeMat = new THREE.MeshStandardMaterial({ color: 0x6b4226, flatShading: true });
+const pineconeGeo = new THREE.ConeGeometry(0.2, 0.5, 6);
+
+function shootPinecone(tree) {
+  // Only one pinecone per tree at a time
+  if (tree.activePinecone && tree.activePinecone.life > 0) return;
+  const spawnY = getTerrainHeight(tree.x, tree.z) + 5;
+  const mesh = new THREE.Mesh(pineconeGeo, pineconeMat);
+  mesh.position.set(tree.x, spawnY, tree.z);
+  mesh.castShadow = true;
+  scene.add(mesh);
+  const p = { mesh, speed: 12, life: 8 };
+  tree.activePinecone = p;
+  pinecones.push(p);
+  sfx.pinecone();
+}
+
+// --- Saws (player projectiles) ---
+const saws = [];
+const sawMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.9, roughness: 0.1 });
+const sawBladeMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9, roughness: 0.1 });
+let sawCooldown = 0;
+
+function shootSaw() {
+  if (sawCooldown > 0) return;
+  sawCooldown = 0.35; sfx.saw();
+  const group = new THREE.Group();
+  // Disc body
+  const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.06, 16), sawMat);
+  disc.rotation.x = Math.PI / 2;
+  disc.castShadow = true;
+  group.add(disc);
+  // Teeth ring
+  const teeth = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.08, 4, 16), sawBladeMat);
+  teeth.rotation.x = Math.PI / 2;
+  group.add(teeth);
+  // Center dot
+  const center = new THREE.Mesh(new THREE.SphereGeometry(0.15, 6, 6), sawBladeMat);
+  group.add(center);
+
+  group.position.copy(skierPos).add(new THREE.Vector3(0, 1.2, -1.5));
+  scene.add(group);
+  saws.push({
+    mesh: group,
+    vel: new THREE.Vector3(skierVelX * 0.3, 0, -(speed + 35)),
+    life: 3.5
+  });
+}
+
+// --- Finish line ---
+const finishZ = -COURSE_DISTANCE;
+const bannerGeo = new THREE.BoxGeometry(SLOPE_WIDTH * 0.5, 3, 0.3);
+const bannerMat = new THREE.MeshStandardMaterial({ color: 0xff2222 });
+const banner = new THREE.Mesh(bannerGeo, bannerMat);
+const finishY = getTerrainHeight(0, finishZ);
+banner.position.set(0, finishY + 4, finishZ);
+scene.add(banner);
+
+// Finish poles
+const poleMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+const poleGeo = new THREE.CylinderGeometry(0.15, 0.15, 6);
+[-SLOPE_WIDTH * 0.25, SLOPE_WIDTH * 0.25].forEach(px => {
+  const pole = new THREE.Mesh(poleGeo, poleMat);
+  pole.position.set(px, finishY + 3, finishZ);
+  pole.castShadow = true;
+  scene.add(pole);
+});
+
+// Checkered banner pattern
+const checkerCanvas = document.createElement('canvas');
+checkerCanvas.width = 128; checkerCanvas.height = 32;
+const ctx = checkerCanvas.getContext('2d');
+for (let cx = 0; cx < 16; cx++) for (let cy = 0; cy < 4; cy++) {
+  ctx.fillStyle = (cx + cy) % 2 === 0 ? '#fff' : '#000';
+  ctx.fillRect(cx * 8, cy * 8, 8, 8);
+}
+const checkerTex = new THREE.CanvasTexture(checkerCanvas);
+checkerTex.wrapS = THREE.RepeatWrapping;
+banner.material = new THREE.MeshStandardMaterial({ map: checkerTex });
+
+// --- HUD ---
+const timerEl = document.getElementById('timer');
+const distEl = document.getElementById('distance');
+const msgEl = document.getElementById('message');
+const resultsEl = document.getElementById('results');
+const startEl = document.getElementById('start');
+const finalTimeEl = document.getElementById('finalTime');
+
+function showMessage(text, duration = 1500) {
+  msgEl.textContent = text;
+  msgEl.classList.add('visible');
+  setTimeout(() => msgEl.classList.remove('visible'), duration);
+}
+
+// --- Controls ---
+window.addEventListener('keydown', e => { keys[e.code] = true; });
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// --- Game functions ---
+function resetSkier() {
+  skierPos.set(0, getTerrainHeight(0, 0) + 0.1, 0);
+  skierVelX = 0; speed = BASE_SPEED; verticalVel = 0;
+  onGround = true; time = 0; crashTimer = 0; sawCooldown = 0;
+  skierGroup.rotation.set(0, 0, 0);
+  // Clear projectiles
+  for (const p of pinecones) scene.remove(p.mesh);
+  pinecones.length = 0;
+  for (const s of saws) scene.remove(s.mesh);
+  saws.length = 0;
+  // Reset living trees to original positions (dead trees stay dead)
+  for (const t of trees) {
+    if (!t.alive) continue;
+    t.x = t.origX;
+    t.z = t.origZ;
+    t.mesh.position.set(t.x, getTerrainHeight(t.x, t.z), t.z);
+    t.mesh.rotation.set(0, 0, 0);
+    t.shootTimer = 1 + Math.random() * 3;
+  }
+}
+
+window.startGame = function () {
+  startEl.style.display = 'none';
+  resultsEl.style.display = 'none';
+  resetSkier();
+  state = 'playing';
+  showMessage('GO!', 1000); sfx.go(); startWind();
+  audioCtx.resume();
+};
+
+window.restartGame = function () {
+  resultsEl.style.display = 'none';
+  resetSkier();
+  state = 'playing';
+  showMessage('GO!', 1000); sfx.go(); startWind();
+};
+
+let dancePartyTime = 0;
+const danceTrees = [];
+
+function finishRun() {
+  state = 'finished'; sfx.finish(); stopWind();
+  finalTimeEl.textContent = time.toFixed(2) + 's';
+  resultsEl.style.display = 'block';
+  // Gather surviving trees for the dance party
+  danceTrees.length = 0;
+  dancePartyTime = 0;
+  const partyZ = skierPos.z;
+  const partyY = getTerrainHeight(0, partyZ);
+  // Clear pinecones
+  for (const p of pinecones) scene.remove(p.mesh);
+  pinecones.length = 0;
+  // Move alive trees into a circle around the skier
+  let i = 0;
+  for (const tree of trees) {
+    if (!tree.alive) continue;
+    danceTrees.push(tree);
+    const angle = (i / Math.min(trees.filter(t => t.alive).length, 12)) * Math.PI * 2;
+    tree.targetX = skierPos.x + Math.cos(angle) * 8;
+    tree.targetZ = partyZ + Math.sin(angle) * 8;
+    tree.dancePhase = angle;
+    i++;
+    if (i >= 12) break;
+  }
+  // Start dance music
+  startDanceMusic();
+}
+
+function startDanceMusic() {
+  const notes = [523, 659, 784, 659, 523, 784, 659, 523, 880, 784, 659, 523];
+  notes.forEach((f, i) => {
+    setTimeout(() => {
+      if (state !== 'finished') return;
+      playTone(f, 0.18, 'square', 0.15);
+      playTone(f / 2, 0.18, 'sine', 0.1);
+    }, i * 200);
+  });
+  // Loop it
+  setTimeout(() => { if (state === 'finished') startDanceMusic(); }, notes.length * 200);
+}
+
+function crash(rockX, rockZ) {
+  state = 'crashed';
+  crashTimer = 1.5;
+  speed = 0;
+  showMessage('CRASH!', 1200); sfx.crash(); stopWind();
+  // Push skier back (uphill) and away from the rock
+  skierPos.z += 4;
+  const pushDir = skierPos.x - rockX;
+  skierPos.x += (pushDir >= 0 ? 1 : -1) * 3;
+  skierPos.x = Math.max(-SLOPE_WIDTH / 2 + 2, Math.min(SLOPE_WIDTH / 2 - 2, skierPos.x));
+  skierPos.y = getTerrainHeight(skierPos.x, skierPos.z) + 0.1;
+  // Tumble rotation
+  skierGroup.rotation.x = -0.8;
+  skierGroup.rotation.z = 0.5;
+}
+
+// --- Shadow follow ---
+const shadowTarget = new THREE.Vector3();
+
+// --- Game loop ---
+const clock = new THREE.Clock();
+resetSkier();
+
+// Set initial camera
+camera.position.copy(skierPos).add(CAM_OFFSET);
+camera.lookAt(skierPos);
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+
+  if (state === 'playing') {
+    time += dt;
+
+    // Steering
+    const steerLeft = keys['ArrowLeft'] || keys['KeyA'];
+    const steerRight = keys['ArrowRight'] || keys['KeyD'];
+    if (steerLeft) skierVelX = Math.max(skierVelX - STEER_SPEED * dt, -MAX_STEER);
+    else if (steerRight) skierVelX = Math.min(skierVelX + STEER_SPEED * dt, MAX_STEER);
+    else skierVelX *= 0.9;
+
+    // Jump
+    if ((keys['Space'] || keys['ArrowUp']) && onGround) {
+      verticalVel = JUMP_FORCE;
+      onGround = false;
+      sfx.jump();
+    }
+
+    // Speed — gradually accelerate
+    speed = Math.min(speed + 2 * dt, MAX_SPEED);
+
+    // Move skier
+    skierPos.x += skierVelX * dt;
+    skierPos.z -= speed * dt;
+
+    // Clamp X to slope
+    skierPos.x = Math.max(-SLOPE_WIDTH / 2 + 2, Math.min(SLOPE_WIDTH / 2 - 2, skierPos.x));
+
+    // Vertical (gravity + terrain)
+    const groundY = getTerrainHeight(skierPos.x, skierPos.z);
+    if (!onGround) {
+      verticalVel -= GRAVITY * dt;
+      skierPos.y += verticalVel * dt;
+      if (skierPos.y <= groundY + 0.1) {
+        skierPos.y = groundY + 0.1;
+        verticalVel = 0;
+        onGround = true;
+      }
+    } else {
+      skierPos.y = groundY + 0.1;
+    }
+
+    // Lean skier into turns
+    skierGroup.rotation.z = -skierVelX * 0.02;
+    skierGroup.rotation.x = onGround ? -SLOPE_ANGLE * 0.3 : -0.1;
+
+    // Collision detection
+    const traveled = -skierPos.z;
+    for (const obs of obstacles) {
+      const dz = Math.abs(skierPos.z - obs.z);
+      if (dz > 5) continue;
+      const dx = Math.abs(skierPos.x - obs.x);
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      if (dist < obs.radius + 0.5) {
+        if (obs.type === 'ramp' && onGround) {
+          verticalVel = JUMP_FORCE * 1.3;
+          onGround = false;
+          speed = Math.min(speed + 3, MAX_SPEED);
+          showMessage('BIG AIR!', 800); sfx.bigAir();
+        }
+        break;
+      }
+    }
+
+    // Saw cooldown
+    if (sawCooldown > 0) sawCooldown -= dt;
+    if (keys['KeyC']) shootSaw();
+
+    // Update trees — sway, creep toward player, and shoot
+    for (const tree of trees) {
+      if (!tree.alive) continue;
+      const tdx = skierPos.x - tree.x;
+      const tdz = skierPos.z - tree.z;
+      const tDist = Math.sqrt(tdx * tdx + tdz * tdz);
+      if (tDist > 80) continue; // only active near player
+      // Sway animation
+      tree.swayPhase += dt * 3;
+      tree.mesh.rotation.z = Math.sin(tree.swayPhase) * 0.06;
+      // Creep toward player
+      if (tDist > 3) {
+        const creepSpeed = 2.5;
+        tree.x += (tdx / tDist) * creepSpeed * dt;
+        tree.z += (tdz / tDist) * creepSpeed * dt;
+        tree.mesh.position.x = tree.x;
+        tree.mesh.position.z = tree.z;
+        tree.mesh.position.y = getTerrainHeight(tree.x, tree.z);
+      }
+      // Collide with player
+      if (tDist < 2) {
+        crash(tree.x, tree.z);
+        break;
+      }
+      // Shoot pinecones at player
+      tree.shootTimer -= dt;
+      if (tree.shootTimer <= 0) {
+        if (tDist < 45) shootPinecone(tree);
+        tree.shootTimer = 1.5 + Math.random() * 2;
+      }
+    }
+
+    // Update pinecones — homing missiles
+    for (let i = pinecones.length - 1; i >= 0; i--) {
+      const p = pinecones[i];
+      // Home toward player
+      const target = new THREE.Vector3(skierPos.x, skierPos.y + 1.2, skierPos.z);
+      const dir = target.sub(p.mesh.position).normalize();
+      p.mesh.position.addScaledVector(dir, p.speed * dt);
+      p.mesh.rotation.x += dt * 10;
+      p.mesh.rotation.z += dt * 8;
+      p.life -= dt;
+      if (p.life <= 0) {
+        scene.remove(p.mesh);
+        pinecones.splice(i, 1);
+        continue;
+      }
+      // Hit player?
+      const dx = p.mesh.position.x - skierPos.x;
+      const dy = p.mesh.position.y - skierPos.y - 1;
+      const ddz = p.mesh.position.z - skierPos.z;
+      if (Math.sqrt(dx * dx + dy * dy + ddz * ddz) < 1.2) {
+        scene.remove(p.mesh);
+        pinecones.splice(i, 1);
+        crash(p.mesh.position.x, p.mesh.position.z);
+        break;
+      }
+    }
+
+    // Update saws
+    for (let i = saws.length - 1; i >= 0; i--) {
+      const s = saws[i];
+      s.mesh.position.addScaledVector(s.vel, dt);
+      s.mesh.rotation.y += dt * 30; // spinning!
+      // Keep above terrain
+      const sawGround = getTerrainHeight(s.mesh.position.x, s.mesh.position.z);
+      if (s.mesh.position.y < sawGround + 1) s.mesh.position.y = sawGround + 1;
+      s.life -= dt;
+      if (s.life <= 0) {
+        scene.remove(s.mesh);
+        saws.splice(i, 1);
+        continue;
+      }
+      // Hit a tree?
+      let sawRemoved = false;
+      for (const tree of trees) {
+        if (!tree.alive) continue;
+        const tdx = s.mesh.position.x - tree.x;
+        const tdz = s.mesh.position.z - tree.z;
+        if (Math.sqrt(tdx * tdx + tdz * tdz) < 2.5) {
+          // Fell the tree!
+          tree.alive = false;
+          // Animate: tip it over
+          tree.mesh.rotation.x = -0.8;
+          tree.mesh.position.y -= 2;
+          // Remove after a moment via fade
+          setTimeout(() => scene.remove(tree.mesh), 2000);
+          scene.remove(s.mesh);
+          saws.splice(i, 1);
+          showMessage('TIMBER!', 800); sfx.timber();
+          sawRemoved = true;
+          break;
+        }
+      }
+      if (sawRemoved) continue;
+      // Hit a pinecone?
+      for (let j = pinecones.length - 1; j >= 0; j--) {
+        const p = pinecones[j];
+        const pdx = s.mesh.position.x - p.mesh.position.x;
+        const pdz = s.mesh.position.z - p.mesh.position.z;
+        const pdy = s.mesh.position.y - p.mesh.position.y;
+        if (Math.sqrt(pdx * pdx + pdy * pdy + pdz * pdz) < 1.0) {
+          scene.remove(p.mesh);
+          pinecones.splice(j, 1);
+          break;
+        }
+      }
+    }
+
+    // Finish check
+    if (traveled >= COURSE_DISTANCE) finishRun();
+
+    // HUD
+    timerEl.textContent = `Time: ${time.toFixed(2)}s`;
+    distEl.textContent = `Distance: ${Math.floor(traveled)}m / ${COURSE_DISTANCE}m`;
+  }
+
+  if (state === 'crashed') {
+    crashTimer -= dt;
+    // Slight tumble animation
+    skierGroup.rotation.x += dt * 2;
+    if (crashTimer <= 0) {
+      state = 'playing'; startWind();
+      skierGroup.rotation.set(0, 0, 0);
+      speed = BASE_SPEED * 0.6;
+      verticalVel = 0;
+      onGround = true;
+      skierPos.y = getTerrainHeight(skierPos.x, skierPos.z) + 0.1;
+    }
+  }
+
+  // Dance party at finish
+  if (state === 'finished') {
+    dancePartyTime += dt;
+    for (const tree of danceTrees) {
+      // Slide toward party position
+      tree.x += (tree.targetX - tree.x) * 2 * dt;
+      tree.z += (tree.targetZ - tree.z) * 2 * dt;
+      tree.mesh.position.x = tree.x;
+      tree.mesh.position.z = tree.z;
+      tree.mesh.position.y = getTerrainHeight(tree.x, tree.z);
+      // Dance moves: bounce, spin, and sway
+      tree.dancePhase += dt * 5;
+      tree.mesh.rotation.y += dt * 3;
+      tree.mesh.rotation.z = Math.sin(tree.dancePhase) * 0.25;
+      tree.mesh.position.y += Math.abs(Math.sin(tree.dancePhase * 1.5)) * 1.5;
+    }
+    // Skier dances too
+    skierGroup.rotation.y += dt * 4;
+    skierGroup.position.y = skierPos.y + Math.abs(Math.sin(dancePartyTime * 6)) * 0.8;
+  }
+
+  // Update skier mesh
+  if (state !== 'finished') skierGroup.position.copy(skierPos);
+
+  // Smooth follow camera
+  const idealCamPos = skierPos.clone().add(
+    new THREE.Vector3(CAM_OFFSET.x, CAM_OFFSET.y, CAM_OFFSET.z)
+  );
+  camera.position.lerp(idealCamPos, CAM_LERP + (1 - CAM_LERP) * 0.06);
+  const lookTarget = skierPos.clone().add(new THREE.Vector3(0, 1.5, -5));
+  camera.lookAt(lookTarget);
+
+  // Move directional light with skier for consistent shadows
+  dirLight.position.set(skierPos.x + 30, skierPos.y + 50, skierPos.z + 20);
+  dirLight.target.position.copy(skierPos);
+  dirLight.target.updateMatrixWorld();
+
+  renderer.render(scene, camera);
+}
+
+animate();
+</script>
+</body>
+</html>
